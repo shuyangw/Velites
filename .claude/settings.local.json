@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "Bash(Where-Object { $_ullName -notmatch '(\\\\\\.git\\\\|\\\\__pycache__\\\\|\\\\data\\\\|\\\\archive\\\\|\\\\\\.venv\\\\|\\\\node_modules\\\\)' })",
+      "Bash(Group-Object Extension)",
+      "Bash(Sort-Object Count -Descending)",
+      "Bash(Select-Object Name, Count)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(while read dir)",
+      "Bash(do echo \"$dir\")",
+      "Bash(dir)",
+      "Bash(find:*)",
+      "Bash(ssh:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd multi-process strategy support with named processes\n\n- Add setproctitle for process naming (homeguard-omr, homeguard-mp)\n- Create separate systemd services for each strategy\n- Add homeguard-trading.target for managing all strategy services\n- Add setup_multi_strategy.sh for EC2 deployment\n- Update requirements.txt with setproctitle dependency\n\nEach strategy now runs in its own process with a distinct name\nvisible in ps/htop, making monitoring easier.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(conda activate:*)",
+      "Bash(python backtest_scripts/combined_omr_mp_backtest_prod.py:*)",
+      "Bash(C:Usersqwqw1anaconda3envsfintechpython.exe backtest_scripts/combined_omr_mp_backtest_prod.py --start 2017 --end 2024)",
+      "Bash(cmd /c \"C:\\Users\\qwqw1\\anaconda3\\envs\\fintech\\python.exe C:\\Users\\qwqw1\\Dropbox\\cs\\github\\Homeguard\\backtest_scripts\\combined_omr_mp_backtest_prod.py --start 2017 --end 2024\")",
+      "Bash(powershell -Command:*)",
+      "Bash(C:/Users/qwqw1/anaconda3/envs/fintech/python.exe -m pytest tests/engine/test_numba_parity.py::TestNumbaVsPythonParity::test_basic_long_only -v)",
+      "Bash(C:/Users/qwqw1/anaconda3/envs/fintech/python.exe:*)",
+      "Bash(git stash:*)",
+      "WebSearch",
+      "Bash(grep:*)",
+      "Bash(timeout 60 tail:*)",
+      "Bash(C:Usersqwqw1anaconda3envsfintechpython.exe backtest_scripts/ramp_walk_forward_validation.py)",
+      "Bash(dir C:Usersqwqw1DropboxcsgithubHomeguardlogsbacktestingresults*ramp_wf* /b /o-d)",
+      "WebFetch(domain:docs.alpaca.markets)",
+      "WebFetch(domain:alpaca.markets)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

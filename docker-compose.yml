@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  velites:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: velites
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data:ro
+      - ./output:/app/output
+      - ./logs:/app/logs
+    networks:
+      - velites-network
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://velites:velites@postgres:5432/velites
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: velites-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: velites
+      POSTGRES_PASSWORD: velites
+      POSTGRES_DB: velites
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - velites-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U velites"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Development services
+  velites-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: velites-dev
+    profiles:
+      - dev
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - ./data:/app/data
+    networks:
+      - velites-network
+    command: ["python", "-m", "pytest", "-v"]
+
+networks:
+  velites-network:
+    driver: bridge
+
+volumes:
+  postgres-data:

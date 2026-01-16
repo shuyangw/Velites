@@ -1,0 +1,1085 @@
+{
+  "metadata": {
+    "version": "1.2.0",
+    "last_updated": "2026-01-15",
+    "description": "Tech product to ticker mappings and supply chain relationships for algorithmic trading",
+    "update_frequency": "quarterly for products, event-driven for supply chain",
+    "notes": "v1.2 adds: EDA sector (SNPS, CDNS), IP cores (RMBS), advanced packaging materials (GLW, AJINY, PCRFY, IBID), ticker normalization with us_adr fields for non-US stocks",
+    "changelog": [
+      "Added semiconductor_software section (EDA tools, IP cores)",
+      "Added emerging_materials section (glass substrates, packaging resins)",
+      "Added us_adr field for all non-US tickers (Samsung, Nintendo, MediaTek, etc.)",
+      "Added trading_venue field to clarify tradability on US exchanges",
+      "Enhanced supply chain with materials companies"
+    ]
+  },
+
+  "ticker_normalization": {
+    "description": "Maps non-US tickers to their US-tradeable equivalents (ADRs or OTC). Use us_adr for Alpaca/US brokers.",
+    "mappings": {
+      "005930.KS": {"us_adr": "SSNLF", "name": "Samsung Electronics", "exchange": "Korea", "us_liquidity": "low", "note": "OTC Pink Sheets - thin volume"},
+      "7974.T": {"us_adr": "NTDOY", "name": "Nintendo", "exchange": "Japan", "us_liquidity": "high", "note": "ADR - good liquidity"},
+      "2454.TW": {"us_adr": "MDTKF", "name": "MediaTek", "exchange": "Taiwan", "us_liquidity": "low", "note": "OTC - thin volume"},
+      "2317.TW": {"us_adr": "HNHPF", "name": "Foxconn (Hon Hai)", "exchange": "Taiwan", "us_liquidity": "low", "note": "OTC - thin volume"},
+      "000660.KS": {"us_adr": "SKHIY", "name": "SK Hynix", "exchange": "Korea", "us_liquidity": "medium", "note": "ADR available"},
+      "TOELY": {"native": "8035.T", "name": "Tokyo Electron", "exchange": "Japan", "us_liquidity": "medium", "note": "ADR - decent volume"},
+      "PCRFY": {"native": "4004.T", "name": "Resonac Holdings", "exchange": "Japan", "us_liquidity": "low", "note": "OTC ADR"},
+      "AJINY": {"native": "2802.T", "name": "Ajinomoto", "exchange": "Japan", "us_liquidity": "low", "note": "OTC ADR"},
+      "IBID": {"native": "4062.T", "name": "Ibiden", "exchange": "Japan", "us_liquidity": "very_low", "note": "Track only - not tradeable on US"},
+      "SIEGY": {"native": "SIE.DE", "name": "Siemens AG", "exchange": "Germany", "us_liquidity": "medium", "note": "ADR - includes EDA division"}
+    },
+    "trading_flags": {
+      "tradeable_us": ["SSNLF", "NTDOY", "SKHIY", "TOELY", "PCRFY", "AJINY", "SIEGY"],
+      "track_only": ["IBID", "MDTKF", "HNHPF"]
+    }
+  },
+
+  "product_map": {
+    "semiconductors": {
+      "nvidia_ai_gpus": {
+        "H100": {"ticker": "NVDA", "role": "designer", "category": "ai_gpu", "architecture": "Hopper", "fabricator": "TSM"},
+        "H200": {"ticker": "NVDA", "role": "designer", "category": "ai_gpu", "architecture": "Hopper", "fabricator": "TSM"},
+        "A100": {"ticker": "NVDA", "role": "designer", "category": "ai_gpu", "architecture": "Ampere", "fabricator": "TSM"},
+        "B100": {"ticker": "NVDA", "role": "designer", "category": "ai_gpu", "architecture": "Blackwell", "fabricator": "TSM"},
+        "B200": {"ticker": "NVDA", "role": "designer", "category": "ai_gpu", "architecture": "Blackwell", "fabricator": "TSM"},
+        "B300": {"ticker": "NVDA", "role": "designer", "category": "ai_gpu", "architecture": "Blackwell Ultra", "fabricator": "TSM", "status": "shipping", "note": "288GB HBM3e"},
+        "GB200": {"ticker": "NVDA", "role": "designer", "category": "ai_superchip", "architecture": "Blackwell", "fabricator": "TSM"},
+        "GB300": {"ticker": "NVDA", "role": "designer", "category": "ai_superchip", "architecture": "Blackwell Ultra", "fabricator": "TSM", "status": "shipping"},
+        "R200": {"ticker": "NVDA", "role": "designer", "category": "ai_gpu", "architecture": "Rubin", "fabricator": "TSM", "expected": "H2 2026", "memory": "HBM4"},
+        "Vera Rubin": {"ticker": "NVDA", "role": "designer", "category": "ai_superchip", "architecture": "Rubin", "expected": "H2 2026", "note": "Vera CPU + Rubin GPU"},
+        "Vera Rubin NVL144": {"ticker": "NVDA", "role": "designer", "category": "ai_rack", "architecture": "Rubin", "expected": "H2 2026"},
+        "Rubin CPX": {"ticker": "NVDA", "role": "designer", "category": "ai_gpu", "architecture": "Rubin", "expected": "late 2026", "note": "Purpose-built for million-token inference"},
+        "Rubin Ultra": {"ticker": "NVDA", "role": "designer", "category": "ai_gpu", "architecture": "Rubin Ultra", "expected": "2027", "memory": "HBM4e"},
+        "Blackwell": {"ticker": "NVDA", "role": "designer", "category": "architecture", "type": "codename", "status": "current"},
+        "Blackwell Ultra": {"ticker": "NVDA", "role": "designer", "category": "architecture", "type": "codename", "status": "current"},
+        "Hopper": {"ticker": "NVDA", "role": "designer", "category": "architecture", "type": "codename", "status": "legacy"},
+        "Rubin": {"ticker": "NVDA", "role": "designer", "category": "architecture", "type": "codename", "expected": "H2 2026"},
+        "Feynman": {"ticker": "NVDA", "role": "designer", "category": "architecture", "type": "codename", "expected": "2028"},
+        "DGX": {"ticker": "NVDA", "role": "designer", "category": "ai_system"},
+        "HGX": {"ticker": "NVDA", "role": "designer", "category": "ai_baseboard"},
+        "NVLink": {"ticker": "NVDA", "role": "designer", "category": "interconnect"},
+        "NVLink 6": {"ticker": "NVDA", "role": "designer", "category": "interconnect", "note": "For Rubin platform"},
+        "NVSwitch": {"ticker": "NVDA", "role": "designer", "category": "interconnect"},
+        "Grace": {"ticker": "NVDA", "role": "designer", "category": "cpu", "architecture": "ARM", "status": "current"},
+        "Vera": {"ticker": "NVDA", "role": "designer", "category": "cpu", "architecture": "ARM", "expected": "H2 2026", "note": "88 Olympus cores, replaces Grace"}
+      },
+      "nvidia_consumer_gpus": {
+        "RTX 4090": {"ticker": "NVDA", "role": "designer", "category": "consumer_gpu", "architecture": "Ada Lovelace"},
+        "RTX 4080": {"ticker": "NVDA", "role": "designer", "category": "consumer_gpu", "architecture": "Ada Lovelace"},
+        "RTX 5090": {"ticker": "NVDA", "role": "designer", "category": "consumer_gpu", "architecture": "Blackwell"},
+        "RTX 5080": {"ticker": "NVDA", "role": "designer", "category": "consumer_gpu", "architecture": "Blackwell"},
+        "GeForce": {"ticker": "NVDA", "role": "designer", "category": "consumer_gpu_brand"}
+      },
+      "nvidia_networking": {
+        "ConnectX-7": {"ticker": "NVDA", "role": "designer", "category": "networking", "origin": "Mellanox"},
+        "ConnectX-8": {"ticker": "NVDA", "role": "designer", "category": "networking", "origin": "Mellanox", "status": "current"},
+        "ConnectX-9": {"ticker": "NVDA", "role": "designer", "category": "networking", "expected": "H2 2026", "note": "For Rubin platform"},
+        "InfiniBand": {"ticker": "NVDA", "role": "designer", "category": "networking", "origin": "Mellanox"},
+        "Spectrum-X": {"ticker": "NVDA", "role": "designer", "category": "networking"},
+        "Spectrum-6": {"ticker": "NVDA", "role": "designer", "category": "networking", "expected": "H2 2026", "note": "Ethernet switch for Rubin"},
+        "BlueField-3": {"ticker": "NVDA", "role": "designer", "category": "dpu", "origin": "Mellanox", "status": "current"},
+        "BlueField-4": {"ticker": "NVDA", "role": "designer", "category": "dpu", "expected": "H2 2026", "note": "For Rubin platform"}
+      },
+      "amd_ai_gpus": {
+        "MI300X": {"ticker": "AMD", "role": "designer", "category": "ai_gpu", "architecture": "CDNA 3", "fabricator": "TSM", "status": "shipping"},
+        "MI300A": {"ticker": "AMD", "role": "designer", "category": "ai_apu", "architecture": "CDNA 3", "fabricator": "TSM"},
+        "MI325X": {"ticker": "AMD", "role": "designer", "category": "ai_gpu", "architecture": "CDNA 3.5", "fabricator": "TSM", "status": "shipping"},
+        "MI350X": {"ticker": "AMD", "role": "designer", "category": "ai_gpu", "architecture": "CDNA 4", "fabricator": "TSM", "status": "shipping", "memory": "288GB HBM3e"},
+        "MI355X": {"ticker": "AMD", "role": "designer", "category": "ai_gpu", "architecture": "CDNA 4", "fabricator": "TSM", "status": "shipping", "note": "1400W TBP, liquid cooled"},
+        "MI400": {"ticker": "AMD", "role": "designer", "category": "ai_gpu", "architecture": "CDNA 5", "expected": "2026", "fabricator": "TSM", "memory": "432GB HBM4"},
+        "MI430X": {"ticker": "AMD", "role": "designer", "category": "ai_gpu", "architecture": "CDNA 5", "expected": "2026", "note": "HPC focused"},
+        "MI455X": {"ticker": "AMD", "role": "designer", "category": "ai_gpu", "architecture": "CDNA 5", "expected": "2026", "note": "Large-scale AI training"},
+        "MI500": {"ticker": "AMD", "role": "designer", "category": "ai_gpu", "architecture": "CDNA Next", "expected": "2027", "fabricator": "TSM"},
+        "Instinct": {"ticker": "AMD", "role": "designer", "category": "ai_gpu_brand"},
+        "Helios": {"ticker": "AMD", "role": "designer", "category": "ai_rack", "expected": "2026", "note": "Rack-scale MI400 + Venice + Vulcano"},
+        "ROCm": {"ticker": "AMD", "role": "designer", "category": "software"},
+        "ROCm 7": {"ticker": "AMD", "role": "designer", "category": "software", "status": "current"}
+      },
+      "amd_cpus": {
+        "EPYC Turin": {"ticker": "AMD", "role": "designer", "category": "server_cpu", "architecture": "Zen 5", "status": "current"},
+        "EPYC Venice": {"ticker": "AMD", "role": "designer", "category": "server_cpu", "architecture": "Zen 6", "expected": "2026"},
+        "EPYC Verano": {"ticker": "AMD", "role": "designer", "category": "server_cpu", "architecture": "Zen 7", "expected": "2027"},
+        "EPYC Genoa": {"ticker": "AMD", "role": "designer", "category": "server_cpu", "architecture": "Zen 4"},
+        "EPYC Bergamo": {"ticker": "AMD", "role": "designer", "category": "server_cpu", "architecture": "Zen 4c"},
+        "Ryzen 9000": {"ticker": "AMD", "role": "designer", "category": "consumer_cpu", "architecture": "Zen 5"},
+        "Ryzen 9950X": {"ticker": "AMD", "role": "designer", "category": "consumer_cpu", "architecture": "Zen 5"},
+        "Ryzen 9850X3D": {"ticker": "AMD", "role": "designer", "category": "consumer_cpu", "architecture": "Zen 5", "note": "3D V-Cache gaming"},
+        "Ryzen AI": {"ticker": "AMD", "role": "designer", "category": "mobile_apu"},
+        "Threadripper": {"ticker": "AMD", "role": "designer", "category": "workstation_cpu"}
+      },
+      "amd_consumer_gpus": {
+        "RX 9070": {"ticker": "AMD", "role": "designer", "category": "consumer_gpu", "architecture": "RDNA 4"},
+        "RX 7900 XTX": {"ticker": "AMD", "role": "designer", "category": "consumer_gpu", "architecture": "RDNA 3"},
+        "Radeon": {"ticker": "AMD", "role": "designer", "category": "consumer_gpu_brand"}
+      },
+      "intel_server": {
+        "Xeon Granite Rapids": {"ticker": "INTC", "role": "designer", "category": "server_cpu", "status": "current"},
+        "Xeon Diamond Rapids": {"ticker": "INTC", "role": "designer", "category": "server_cpu", "expected": "early 2026"},
+        "Xeon Emerald Rapids": {"ticker": "INTC", "role": "designer", "category": "server_cpu"},
+        "Xeon Sapphire Rapids": {"ticker": "INTC", "role": "designer", "category": "server_cpu"},
+        "Gaudi 3": {"ticker": "INTC", "role": "designer", "category": "ai_accelerator", "origin": "Habana Labs", "status": "shipping", "note": "Final Gaudi generation"},
+        "Gaudi 2": {"ticker": "INTC", "role": "designer", "category": "ai_accelerator", "origin": "Habana Labs"},
+        "Falcon Shores": {"ticker": "INTC", "role": "designer", "category": "ai_accelerator", "status": "cancelled", "note": "Internal test chip only"},
+        "Jaguar Shores": {"ticker": "INTC", "role": "designer", "category": "ai_accelerator", "expected": "2026-2027", "note": "Rack-scale solution, replaces Falcon Shores", "memory": "HBM4e"}
+      },
+      "intel_consumer": {
+        "Core Ultra 200": {"ticker": "INTC", "role": "designer", "category": "consumer_cpu", "architecture": "Arrow Lake", "status": "current"},
+        "Panther Lake": {"ticker": "INTC", "role": "designer", "category": "mobile_cpu", "type": "codename", "expected": "2026", "note": "Xe3 graphics"},
+        "Nova Lake": {"ticker": "INTC", "role": "designer", "category": "mobile_cpu", "type": "codename", "expected": "2026"},
+        "Core Ultra": {"ticker": "INTC", "role": "designer", "category": "consumer_cpu"},
+        "Lunar Lake": {"ticker": "INTC", "role": "designer", "category": "mobile_cpu", "type": "codename", "status": "current"},
+        "Arrow Lake": {"ticker": "INTC", "role": "designer", "category": "desktop_cpu", "type": "codename", "status": "current"},
+        "Arc Battlemage": {"ticker": "INTC", "role": "designer", "category": "consumer_gpu", "status": "current"},
+        "Arc B580": {"ticker": "INTC", "role": "designer", "category": "consumer_gpu", "status": "shipping"}
+      },
+      "apple_silicon": {
+        "M1": {"ticker": "AAPL", "role": "designer", "category": "soc", "fabricator": "TSM", "node": "5nm", "status": "legacy"},
+        "M2": {"ticker": "AAPL", "role": "designer", "category": "soc", "fabricator": "TSM", "node": "5nm", "status": "legacy"},
+        "M3": {"ticker": "AAPL", "role": "designer", "category": "soc", "fabricator": "TSM", "node": "3nm"},
+        "M4": {"ticker": "AAPL", "role": "designer", "category": "soc", "fabricator": "TSM", "node": "3nm"},
+        "M4 Pro": {"ticker": "AAPL", "role": "designer", "category": "soc", "fabricator": "TSM", "status": "current"},
+        "M4 Max": {"ticker": "AAPL", "role": "designer", "category": "soc", "fabricator": "TSM", "status": "current"},
+        "M4 Ultra": {"ticker": "AAPL", "role": "designer", "category": "soc", "fabricator": "TSM"},
+        "M5": {"ticker": "AAPL", "role": "designer", "category": "soc", "fabricator": "TSM", "node": "3nm", "status": "shipping", "launched": "Oct 2025"},
+        "M5 Pro": {"ticker": "AAPL", "role": "designer", "category": "soc", "fabricator": "TSM", "expected": "spring 2026"},
+        "M5 Max": {"ticker": "AAPL", "role": "designer", "category": "soc", "fabricator": "TSM", "expected": "spring 2026"},
+        "M6": {"ticker": "AAPL", "role": "designer", "category": "soc", "fabricator": "TSM", "node": "2nm", "expected": "late 2026"},
+        "A18 Pro": {"ticker": "AAPL", "role": "designer", "category": "mobile_soc", "fabricator": "TSM", "status": "current"},
+        "A17 Pro": {"ticker": "AAPL", "role": "designer", "category": "mobile_soc", "fabricator": "TSM"},
+        "R1": {"ticker": "AAPL", "role": "designer", "category": "xr_processor", "product": "Vision Pro"},
+        "N1": {"ticker": "AAPL", "role": "designer", "category": "wireless_chip", "note": "New networking chip for Wi-Fi 7"}
+      },
+      "qualcomm": {
+        "Snapdragon 8 Gen 4": {"ticker": "QCOM", "role": "designer", "category": "mobile_soc", "fabricator": "TSM"},
+        "Snapdragon 8 Gen 3": {"ticker": "QCOM", "role": "designer", "category": "mobile_soc", "fabricator": "TSM"},
+        "Snapdragon X Elite": {"ticker": "QCOM", "role": "designer", "category": "pc_soc", "fabricator": "TSM"},
+        "Snapdragon X Plus": {"ticker": "QCOM", "role": "designer", "category": "pc_soc", "fabricator": "TSM"},
+        "Snapdragon": {"ticker": "QCOM", "role": "designer", "category": "soc_brand"}
+      },
+      "broadcom": {
+        "Tomahawk 5": {"ticker": "AVGO", "role": "designer", "category": "switch_asic"},
+        "Memory": {"ticker": "AVGO", "role": "designer", "category": "custom_asic"},
+        "XPU": {"ticker": "AVGO", "role": "designer", "category": "custom_ai_asic"},
+        "Jericho3-AI": {"ticker": "AVGO", "role": "designer", "category": "networking_asic"}
+      },
+      "memory": {
+        "HBM3": {"tickers": ["SKHIY", "SSNLF", "MU"], "category": "memory", "type": "high_bandwidth_memory", "status": "current", "native_tickers": {"SKHIY": "000660.KS", "SSNLF": "005930.KS"}},
+        "HBM3e": {"tickers": ["SKHIY", "SSNLF", "MU"], "category": "memory", "type": "high_bandwidth_memory", "status": "current"},
+        "HBM4": {"tickers": ["SKHIY", "SSNLF", "MU"], "category": "memory", "type": "high_bandwidth_memory", "expected": "H2 2026", "note": "For NVIDIA Rubin, AMD MI400"},
+        "HBM4e": {"tickers": ["SKHIY", "SSNLF", "MU"], "category": "memory", "type": "high_bandwidth_memory", "expected": "2027", "note": "For Rubin Ultra"},
+        "GDDR6X": {"tickers": ["MU", "SSNLF"], "category": "memory", "type": "graphics_memory"},
+        "GDDR7": {"tickers": ["MU", "SSNLF", "SKHIY"], "category": "memory", "type": "graphics_memory", "status": "shipping"},
+        "DDR5": {"tickers": ["MU", "SSNLF", "SKHIY"], "category": "memory", "type": "dram"},
+        "LPDDR5X": {"tickers": ["SSNLF", "SKHIY", "MU"], "category": "memory", "type": "mobile_dram"}
+      },
+      "mediatek": {
+        "Dimensity 9400": {"ticker": "2454.TW", "us_adr": "MDTKF", "role": "designer", "category": "mobile_soc", "fabricator": "TSM", "tradeable_us": false},
+        "Dimensity 9300": {"ticker": "2454.TW", "us_adr": "MDTKF", "role": "designer", "category": "mobile_soc", "fabricator": "TSM"},
+        "Dimensity": {"ticker": "2454.TW", "us_adr": "MDTKF", "role": "designer", "category": "mobile_soc_brand"}
+      },
+      "marvell": {
+        "OCTEON": {"ticker": "MRVL", "role": "designer", "category": "infrastructure_processor"},
+        "Alaska": {"ticker": "MRVL", "role": "designer", "category": "phy"},
+        "Custom AI": {"ticker": "MRVL", "role": "designer", "category": "custom_ai_asic"}
+      },
+      "arm": {
+        "Cortex-X5": {"ticker": "ARM", "role": "designer", "category": "cpu_core"},
+        "Cortex-A720": {"ticker": "ARM", "role": "designer", "category": "cpu_core"},
+        "Neoverse": {"ticker": "ARM", "role": "designer", "category": "server_core"},
+        "Neoverse V3": {"ticker": "ARM", "role": "designer", "category": "server_core", "note": "Latest high-performance core"},
+        "Immortalis": {"ticker": "ARM", "role": "designer", "category": "gpu_core"}
+      }
+    },
+
+    "semiconductor_software": {
+      "eda_tools": {
+        "description": "Electronic Design Automation - the 'toll booth' of chip design. Every new chip requires these tools.",
+        "Synopsys": {
+          "ticker": "SNPS",
+          "category": "eda",
+          "products": ["Fusion Compiler", "DSO.ai", "VCS", "PrimeTime", "Synplify"],
+          "moat": "Duopoly with Cadence, 70%+ market share together",
+          "signal_correlation": "High with R&D budgets, NOT capex",
+          "customers": ["NVDA", "AMD", "AAPL", "QCOM", "AVGO", "MRVL", "INTC"],
+          "note": "Every NVIDIA/AMD/Apple chip uses Synopsys or Cadence tools"
+        },
+        "Cadence": {
+          "ticker": "CDNS",
+          "category": "eda",
+          "products": ["Palladium Z3", "Virtuoso", "Genus", "Innovus", "Cerebrus"],
+          "moat": "Duopoly with Synopsys",
+          "signal_correlation": "High with R&D budgets",
+          "customers": ["NVDA", "AMD", "AAPL", "QCOM", "AVGO", "INTC", "TSM"],
+          "note": "Palladium is critical for chip emulation/verification"
+        },
+        "Siemens EDA": {
+          "ticker": "SIEGY",
+          "native_ticker": "SIE.DE",
+          "category": "eda",
+          "products": ["Calibre", "HyperLynx", "Tessent"],
+          "moat": "Calibre is industry standard for DRC/LVS verification",
+          "note": "Siemens EDA is part of Siemens AG - exposure diluted by industrial business",
+          "revenue_pct_of_parent": "~5%"
+        }
+      },
+      "ip_cores": {
+        "description": "Reusable chip design blocks - royalties on every chip shipped",
+        "Arm Holdings": {
+          "ticker": "ARM",
+          "category": "ip",
+          "products": ["Cortex CPU cores", "Neoverse server cores", "Mali GPU", "Immortalis GPU"],
+          "revenue_model": "Licensing + per-chip royalties",
+          "moat": "99%+ smartphone market share, growing in servers/AI",
+          "customers": ["AAPL", "QCOM", "NVDA", "AMZN", "GOOGL", "MSFT"],
+          "signal": "Every ARM-based chip design generates recurring royalties"
+        },
+        "Rambus": {
+          "ticker": "RMBS",
+          "category": "ip",
+          "products": ["Memory Interface IP", "HBM3/HBM4 IP", "Security IP", "CryptoManager"],
+          "moat": "Critical patents on memory interfaces, especially HBM",
+          "signal": "HBM growth = RMBS royalty growth",
+          "note": "High-margin pure play on HBM explosion for AI",
+          "customers": ["SKHIY", "MU", "NVDA", "AMD"]
+        },
+        "CEVA": {
+          "ticker": "CEVA",
+          "category": "ip",
+          "products": ["DSP cores", "AI/ML IP", "5G modem IP", "Sensor fusion"],
+          "market_cap": "~700M",
+          "note": "Smaller player but pure-play IP licensing"
+        }
+      }
+    },
+
+    "cloud_services": {
+      "aws": {
+        "EC2": {"ticker": "AMZN", "category": "compute"},
+        "S3": {"ticker": "AMZN", "category": "storage"},
+        "Lambda": {"ticker": "AMZN", "category": "serverless"},
+        "Graviton": {"ticker": "AMZN", "category": "custom_cpu", "architecture": "ARM"},
+        "Graviton4": {"ticker": "AMZN", "category": "custom_cpu", "architecture": "ARM"},
+        "Trainium": {"ticker": "AMZN", "category": "custom_ai_chip"},
+        "Trainium2": {"ticker": "AMZN", "category": "custom_ai_chip"},
+        "Trainium3": {"ticker": "AMZN", "category": "custom_ai_chip", "expected": "2025"},
+        "Inferentia": {"ticker": "AMZN", "category": "custom_inference_chip"},
+        "Inferentia2": {"ticker": "AMZN", "category": "custom_inference_chip"},
+        "Nitro": {"ticker": "AMZN", "category": "custom_security_chip"},
+        "SageMaker": {"ticker": "AMZN", "category": "ml_platform"},
+        "Bedrock": {"ticker": "AMZN", "category": "ai_platform"},
+        "Amazon Q": {"ticker": "AMZN", "category": "ai_assistant"},
+        "Aurora": {"ticker": "AMZN", "category": "database"},
+        "Redshift": {"ticker": "AMZN", "category": "data_warehouse"},
+        "EKS": {"ticker": "AMZN", "category": "kubernetes"},
+        "ECS": {"ticker": "AMZN", "category": "containers"}
+      },
+      "azure": {
+        "Azure OpenAI Service": {"ticker": "MSFT", "category": "ai_platform"},
+        "Azure AI": {"ticker": "MSFT", "category": "ai_platform"},
+        "Azure ML": {"ticker": "MSFT", "category": "ml_platform"},
+        "Cognitive Services": {"ticker": "MSFT", "category": "ai_services"},
+        "Maia": {"ticker": "MSFT", "category": "custom_ai_chip"},
+        "Cobalt": {"ticker": "MSFT", "category": "custom_cpu", "architecture": "ARM"},
+        "Azure Cosmos DB": {"ticker": "MSFT", "category": "database"},
+        "Azure SQL": {"ticker": "MSFT", "category": "database"},
+        "AKS": {"ticker": "MSFT", "category": "kubernetes"},
+        "Azure Functions": {"ticker": "MSFT", "category": "serverless"},
+        "Microsoft Fabric": {"ticker": "MSFT", "category": "data_platform"}
+      },
+      "gcp": {
+        "TPU": {"ticker": "GOOGL", "category": "custom_ai_chip"},
+        "TPU v5e": {"ticker": "GOOGL", "category": "custom_ai_chip"},
+        "TPU v5p": {"ticker": "GOOGL", "category": "custom_ai_chip"},
+        "TPU v6": {"ticker": "GOOGL", "category": "custom_ai_chip"},
+        "Ironwood": {"ticker": "GOOGL", "category": "custom_ai_chip", "generation": "TPU v7"},
+        "Axion": {"ticker": "GOOGL", "category": "custom_cpu", "architecture": "ARM"},
+        "Vertex AI": {"ticker": "GOOGL", "category": "ml_platform"},
+        "BigQuery": {"ticker": "GOOGL", "category": "data_warehouse"},
+        "Gemini API": {"ticker": "GOOGL", "category": "ai_api"},
+        "Cloud Spanner": {"ticker": "GOOGL", "category": "database"},
+        "GKE": {"ticker": "GOOGL", "category": "kubernetes"}
+      },
+      "oracle_cloud": {
+        "OCI": {"ticker": "ORCL", "category": "cloud_infrastructure"},
+        "Oracle Autonomous Database": {"ticker": "ORCL", "category": "database"},
+        "Oracle Cloud AI": {"ticker": "ORCL", "category": "ai_services"},
+        "Ampere": {"ticker": "ORCL", "category": "arm_compute", "note": "OCI uses Ampere CPUs"}
+      },
+      "ibm_cloud": {
+        "IBM Cloud": {"ticker": "IBM", "category": "cloud_infrastructure"},
+        "watsonx": {"ticker": "IBM", "category": "ai_platform"},
+        "Watson": {"ticker": "IBM", "category": "ai_platform"}
+      }
+    },
+
+    "ai_models": {
+      "openai": {
+        "ChatGPT": {"primary_ticker": "MSFT", "exposure": "27% stake in OpenAI", "category": "ai_chatbot"},
+        "GPT-4": {"primary_ticker": "MSFT", "exposure": "27% stake", "category": "llm"},
+        "GPT-4o": {"primary_ticker": "MSFT", "exposure": "27% stake", "category": "llm"},
+        "GPT-4o mini": {"primary_ticker": "MSFT", "exposure": "27% stake", "category": "llm"},
+        "o1": {"primary_ticker": "MSFT", "exposure": "27% stake", "category": "reasoning_model"},
+        "o3": {"primary_ticker": "MSFT", "exposure": "27% stake", "category": "reasoning_model"},
+        "DALL-E": {"primary_ticker": "MSFT", "exposure": "27% stake", "category": "image_gen"},
+        "Sora": {"primary_ticker": "MSFT", "exposure": "27% stake", "category": "video_gen"},
+        "Whisper": {"primary_ticker": "MSFT", "exposure": "27% stake", "category": "speech"}
+      },
+      "anthropic": {
+        "Claude": {"investors": ["AMZN", "GOOGL", "MSFT", "NVDA", "CRM"], "category": "llm"},
+        "Claude 3.5 Sonnet": {"investors": ["AMZN", "GOOGL", "MSFT", "NVDA", "CRM"], "category": "llm"},
+        "Claude 4": {"investors": ["AMZN", "GOOGL", "MSFT", "NVDA", "CRM"], "category": "llm"}
+      },
+      "google": {
+        "Gemini": {"ticker": "GOOGL", "category": "llm"},
+        "Gemini Pro": {"ticker": "GOOGL", "category": "llm"},
+        "Gemini Ultra": {"ticker": "GOOGL", "category": "llm"},
+        "Gemma": {"ticker": "GOOGL", "category": "open_model"},
+        "PaLM": {"ticker": "GOOGL", "category": "llm", "status": "legacy"},
+        "Imagen": {"ticker": "GOOGL", "category": "image_gen"},
+        "Veo": {"ticker": "GOOGL", "category": "video_gen"}
+      },
+      "meta": {
+        "Llama": {"ticker": "META", "category": "open_model"},
+        "Llama 3": {"ticker": "META", "category": "open_model"},
+        "Llama 3.1": {"ticker": "META", "category": "open_model"},
+        "Llama 4": {"ticker": "META", "category": "open_model"},
+        "Code Llama": {"ticker": "META", "category": "code_model"},
+        "SAM": {"ticker": "META", "category": "vision_model"}
+      },
+      "mistral": {
+        "Mistral": {"ticker": null, "status": "private", "investors": ["MSFT", "NVDA"]},
+        "Mixtral": {"ticker": null, "status": "private"}
+      },
+      "xai": {
+        "Grok": {"ticker": null, "status": "private", "parent": "xAI"},
+        "Grok-2": {"ticker": null, "status": "private"}
+      },
+      "amazon": {
+        "Titan": {"ticker": "AMZN", "category": "foundation_model"},
+        "Nova": {"ticker": "AMZN", "category": "foundation_model"}
+      }
+    },
+
+    "enterprise_software": {
+      "salesforce": {
+        "Sales Cloud": {"ticker": "CRM", "category": "crm"},
+        "Service Cloud": {"ticker": "CRM", "category": "customer_service"},
+        "Marketing Cloud": {"ticker": "CRM", "category": "marketing"},
+        "Agentforce": {"ticker": "CRM", "category": "ai_agents"},
+        "Einstein": {"ticker": "CRM", "category": "ai"},
+        "MuleSoft": {"ticker": "CRM", "category": "integration"},
+        "Tableau": {"ticker": "CRM", "category": "analytics"},
+        "Slack": {"ticker": "CRM", "category": "collaboration"},
+        "Data Cloud": {"ticker": "CRM", "category": "cdp"}
+      },
+      "servicenow": {
+        "ServiceNow": {"ticker": "NOW", "category": "itsm"},
+        "ITSM": {"ticker": "NOW", "category": "it_service_management"},
+        "ITOM": {"ticker": "NOW", "category": "it_operations"},
+        "Now Assist": {"ticker": "NOW", "category": "ai"},
+        "Now Platform": {"ticker": "NOW", "category": "platform"}
+      },
+      "workday": {
+        "Workday HCM": {"ticker": "WDAY", "category": "hcm"},
+        "Workday Financial Management": {"ticker": "WDAY", "category": "erp"},
+        "Adaptive Planning": {"ticker": "WDAY", "category": "planning"},
+        "Workday Illuminate": {"ticker": "WDAY", "category": "ai"}
+      },
+      "sap": {
+        "SAP S/4HANA": {"ticker": "SAP", "category": "erp"},
+        "SAP SuccessFactors": {"ticker": "SAP", "category": "hcm"},
+        "SAP BTP": {"ticker": "SAP", "category": "platform"},
+        "SAP Joule": {"ticker": "SAP", "category": "ai_assistant"}
+      },
+      "oracle": {
+        "Oracle Fusion": {"ticker": "ORCL", "category": "erp"},
+        "Oracle NetSuite": {"ticker": "ORCL", "category": "erp"},
+        "Oracle HCM": {"ticker": "ORCL", "category": "hcm"},
+        "Oracle Database": {"ticker": "ORCL", "category": "database"}
+      },
+      "adobe": {
+        "Adobe Creative Cloud": {"ticker": "ADBE", "category": "creative"},
+        "Photoshop": {"ticker": "ADBE", "category": "creative"},
+        "Firefly": {"ticker": "ADBE", "category": "ai_creative"},
+        "Adobe Experience Cloud": {"ticker": "ADBE", "category": "marketing"},
+        "Adobe Express": {"ticker": "ADBE", "category": "creative"}
+      },
+      "intuit": {
+        "QuickBooks": {"ticker": "INTU", "category": "accounting"},
+        "TurboTax": {"ticker": "INTU", "category": "tax"},
+        "Mailchimp": {"ticker": "INTU", "category": "marketing"},
+        "Credit Karma": {"ticker": "INTU", "category": "fintech"}
+      }
+    },
+
+    "data_infrastructure": {
+      "snowflake": {
+        "Snowflake": {"ticker": "SNOW", "category": "data_warehouse"},
+        "Snowpark": {"ticker": "SNOW", "category": "data_engineering"},
+        "Cortex AI": {"ticker": "SNOW", "category": "ai"},
+        "Document AI": {"ticker": "SNOW", "category": "ai"}
+      },
+      "databricks": {
+        "Databricks": {"ticker": null, "status": "private", "category": "data_lakehouse"},
+        "Delta Lake": {"ticker": null, "status": "private"},
+        "MLflow": {"ticker": null, "status": "open_source", "steward": "Databricks"},
+        "Unity Catalog": {"ticker": null, "status": "private"}
+      },
+      "mongodb": {
+        "MongoDB Atlas": {"ticker": "MDB", "category": "database"},
+        "MongoDB": {"ticker": "MDB", "category": "database"}
+      },
+      "elastic": {
+        "Elasticsearch": {"ticker": "ESTC", "category": "search"},
+        "Elastic Cloud": {"ticker": "ESTC", "category": "observability"},
+        "Kibana": {"ticker": "ESTC", "category": "visualization"}
+      },
+      "confluent": {
+        "Confluent Cloud": {"ticker": "CFLT", "category": "streaming"},
+        "Kafka": {"ticker": "CFLT", "category": "streaming", "note": "Confluent commercializes Apache Kafka"}
+      },
+      "teradata": {
+        "Teradata Vantage": {"ticker": "TDC", "category": "data_warehouse"}
+      }
+    },
+
+    "developer_tools": {
+      "microsoft": {
+        "GitHub": {"ticker": "MSFT", "category": "version_control"},
+        "GitHub Copilot": {"ticker": "MSFT", "category": "ai_coding"},
+        "VS Code": {"ticker": "MSFT", "category": "ide"},
+        "Azure DevOps": {"ticker": "MSFT", "category": "devops"},
+        "TypeScript": {"ticker": "MSFT", "category": "language"}
+      },
+      "gitlab": {
+        "GitLab": {"ticker": "GTLB", "category": "devops"},
+        "GitLab Duo": {"ticker": "GTLB", "category": "ai_coding"}
+      },
+      "atlassian": {
+        "Jira": {"ticker": "TEAM", "category": "project_management"},
+        "Confluence": {"ticker": "TEAM", "category": "documentation"},
+        "Bitbucket": {"ticker": "TEAM", "category": "version_control"},
+        "Atlassian Intelligence": {"ticker": "TEAM", "category": "ai"}
+      },
+      "hashicorp": {
+        "Terraform": {"ticker": "HCP", "category": "iac"},
+        "Vault": {"ticker": "HCP", "category": "secrets"},
+        "Consul": {"ticker": "HCP", "category": "service_mesh"},
+        "Nomad": {"ticker": "HCP", "category": "orchestration"}
+      },
+      "jetbrains": {
+        "IntelliJ IDEA": {"ticker": null, "status": "private", "category": "ide"},
+        "PyCharm": {"ticker": null, "status": "private", "category": "ide"}
+      }
+    },
+
+    "observability": {
+      "datadog": {
+        "Datadog": {"ticker": "DDOG", "category": "observability"},
+        "APM": {"ticker": "DDOG", "category": "apm"},
+        "Log Management": {"ticker": "DDOG", "category": "logging"},
+        "Infrastructure": {"ticker": "DDOG", "category": "monitoring"},
+        "Bits AI": {"ticker": "DDOG", "category": "ai"}
+      },
+      "splunk": {
+        "Splunk": {"ticker": "CSCO", "category": "observability", "note": "Acquired by Cisco 2024"},
+        "Splunk Cloud": {"ticker": "CSCO", "category": "siem"}
+      },
+      "dynatrace": {
+        "Dynatrace": {"ticker": "DT", "category": "observability"},
+        "Davis AI": {"ticker": "DT", "category": "ai"}
+      },
+      "newrelic": {
+        "New Relic": {"ticker": "NEWR", "category": "observability", "note": "Taken private 2023"}
+      }
+    },
+
+    "cybersecurity": {
+      "crowdstrike": {
+        "CrowdStrike Falcon": {"ticker": "CRWD", "category": "endpoint"},
+        "Charlotte AI": {"ticker": "CRWD", "category": "ai"}
+      },
+      "palo_alto": {
+        "Cortex": {"ticker": "PANW", "category": "xdr"},
+        "Prisma": {"ticker": "PANW", "category": "cloud_security"},
+        "Strata": {"ticker": "PANW", "category": "network_security"}
+      },
+      "zscaler": {
+        "Zscaler": {"ticker": "ZS", "category": "zero_trust"},
+        "ZIA": {"ticker": "ZS", "category": "secure_web_gateway"},
+        "ZPA": {"ticker": "ZS", "category": "private_access"}
+      },
+      "okta": {
+        "Okta": {"ticker": "OKTA", "category": "identity"},
+        "Auth0": {"ticker": "OKTA", "category": "identity"}
+      },
+      "fortinet": {
+        "FortiGate": {"ticker": "FTNT", "category": "firewall"},
+        "FortiOS": {"ticker": "FTNT", "category": "security_os"}
+      }
+    },
+
+    "consumer_electronics": {
+      "apple": {
+        "iPhone": {"ticker": "AAPL", "category": "smartphone"},
+        "iPad": {"ticker": "AAPL", "category": "tablet"},
+        "Mac": {"ticker": "AAPL", "category": "computer"},
+        "MacBook": {"ticker": "AAPL", "category": "laptop"},
+        "Apple Watch": {"ticker": "AAPL", "category": "wearable"},
+        "AirPods": {"ticker": "AAPL", "category": "audio"},
+        "Vision Pro": {"ticker": "AAPL", "category": "xr"},
+        "Apple TV": {"ticker": "AAPL", "category": "streaming"},
+        "HomePod": {"ticker": "AAPL", "category": "smart_home"},
+        "Apple Intelligence": {"ticker": "AAPL", "category": "ai"}
+      },
+      "samsung": {
+        "Galaxy S": {"ticker": "SSNLF", "native_ticker": "005930.KS", "category": "smartphone"},
+        "Galaxy Z Fold": {"ticker": "SSNLF", "native_ticker": "005930.KS", "category": "foldable"},
+        "Galaxy Z Flip": {"ticker": "SSNLF", "native_ticker": "005930.KS", "category": "foldable"},
+        "Galaxy Watch": {"ticker": "SSNLF", "native_ticker": "005930.KS", "category": "wearable"},
+        "Galaxy Tab": {"ticker": "SSNLF", "native_ticker": "005930.KS", "category": "tablet"},
+        "Exynos": {"ticker": "SSNLF", "native_ticker": "005930.KS", "category": "mobile_soc"}
+      },
+      "google_hardware": {
+        "Pixel": {"ticker": "GOOGL", "category": "smartphone"},
+        "Pixel Watch": {"ticker": "GOOGL", "category": "wearable"},
+        "Nest": {"ticker": "GOOGL", "category": "smart_home"},
+        "Chromecast": {"ticker": "GOOGL", "category": "streaming"},
+        "Tensor": {"ticker": "GOOGL", "category": "mobile_soc"}
+      },
+      "meta_hardware": {
+        "Quest": {"ticker": "META", "category": "vr"},
+        "Quest 3": {"ticker": "META", "category": "vr"},
+        "Ray-Ban Meta": {"ticker": "META", "category": "smart_glasses"}
+      },
+      "sony": {
+        "PlayStation 5": {"ticker": "SONY", "category": "gaming"},
+        "PS5": {"ticker": "SONY", "category": "gaming"},
+        "PlayStation VR2": {"ticker": "SONY", "category": "vr"},
+        "Sony Alpha": {"ticker": "SONY", "category": "camera"}
+      },
+      "microsoft_hardware": {
+        "Xbox": {"ticker": "MSFT", "category": "gaming"},
+        "Xbox Series X": {"ticker": "MSFT", "category": "gaming"},
+        "Surface": {"ticker": "MSFT", "category": "computer"},
+        "HoloLens": {"ticker": "MSFT", "category": "ar"}
+      },
+      "nintendo": {
+        "Nintendo Switch": {"ticker": "NTDOY", "native_ticker": "7974.T", "category": "gaming"},
+        "Switch 2": {"ticker": "NTDOY", "native_ticker": "7974.T", "category": "gaming", "expected": "2025"}
+      }
+    }
+  },
+
+  "supply_chain": {
+    "NVDA": {
+      "name": "NVIDIA Corporation",
+      "tier1_suppliers": {
+        "TSM": {"role": "foundry", "products": ["all GPUs", "Grace CPU", "Vera CPU"], "revenue_concentration": "sole source", "nodes": ["3nm", "4nm", "5nm"]},
+        "SKHIY": {"role": "memory", "products": ["HBM3", "HBM3e", "HBM4"], "market_share": "57-62%", "note": "Primary HBM supplier, sold out through 2026"},
+        "MU": {"role": "memory", "products": ["HBM3e", "HBM4", "GDDR6X"], "market_share": "21%", "note": "Now #2 in HBM, surpassed Samsung in Q2 2025"},
+        "SSNLF": {"role": "memory", "products": ["HBM3", "HBM3e"], "market_share": "17-22%", "name": "Samsung", "native_ticker": "005930.KS", "note": "Dropped to #3 in Q2 2025, recovering"},
+        "AVGO": {"role": "networking", "products": ["custom ASICs", "ethernet switches"]},
+        "MRVL": {"role": "networking", "products": ["custom interconnects"]},
+        "SNPS": {"role": "eda", "products": ["chip design software"], "note": "Essential for GPU design"},
+        "CDNS": {"role": "eda", "products": ["verification, emulation"], "note": "Palladium for chip verification"},
+        "RMBS": {"role": "ip", "products": ["HBM interface IP"], "note": "Memory interface royalties"}
+      },
+      "tier1_customers": {
+        "MSFT": {"products": ["H100", "H200", "B200"], "use_case": "Azure AI"},
+        "AMZN": {"products": ["H100", "H200"], "use_case": "AWS AI"},
+        "GOOGL": {"products": ["H100", "A100"], "use_case": "GCP AI"},
+        "META": {"products": ["H100", "H200"], "use_case": "AI research"},
+        "ORCL": {"products": ["H100", "B200"], "use_case": "OCI AI"},
+        "TSLA": {"products": ["H100", "A100"], "use_case": "Dojo training"}
+      },
+      "competitors": ["AMD", "INTC", "GOOGL", "AMZN"]
+    },
+
+    "TSM": {
+      "name": "Taiwan Semiconductor Manufacturing Company",
+      "tier1_suppliers": {
+        "ASML": {"role": "lithography", "products": ["EUV systems", "DUV systems"], "revenue_to_supplier": "31%"},
+        "AMAT": {"role": "equipment", "products": ["deposition", "etch", "CMP"], "revenue_to_supplier": "15-20%"},
+        "LRCX": {"role": "equipment", "products": ["etch", "deposition"], "revenue_to_supplier": "15-20%"},
+        "KLAC": {"role": "equipment", "products": ["inspection", "metrology"], "revenue_to_supplier": "15-20%"},
+        "TOELY": {"role": "equipment", "products": ["coater/developer", "etch"], "name": "Tokyo Electron"},
+        "ENTG": {"role": "materials", "products": ["ultra-pure chemicals", "FOUPs", "filters"]},
+        "PLAB": {"role": "materials", "products": ["photomasks"]},
+        "AEHR": {"role": "equipment", "products": ["wafer test systems"]},
+        "UCTT": {"role": "equipment", "products": ["gas delivery systems"]},
+        "AJINY": {"role": "materials", "products": ["ABF substrates"], "name": "Ajinomoto", "native_ticker": "2802.T", "note": "99% market share in ABF"},
+        "PCRFY": {"role": "materials", "products": ["die attach film", "molding compounds"], "name": "Resonac", "native_ticker": "4004.T"},
+        "GLW": {"role": "materials", "products": ["glass substrates"], "name": "Corning", "status": "emerging", "note": "Next-gen packaging for 2026+"}
+      },
+      "tier1_customers": {
+        "AAPL": {"revenue_pct": "22-25%", "products": ["M-series", "A-series"], "node": "3nm"},
+        "NVDA": {"revenue_pct": "11-21%", "products": ["H100", "B100", "Blackwell"], "node": "4nm/3nm"},
+        "AMD": {"revenue_pct": "7%", "products": ["EPYC", "MI300", "Ryzen"], "node": "5nm/4nm/3nm"},
+        "QCOM": {"revenue_pct": "8%", "products": ["Snapdragon"], "node": "4nm"},
+        "MDTKF": {"revenue_pct": "9-10%", "products": ["Dimensity"], "name": "MediaTek", "native_ticker": "2454.TW"},
+        "AVGO": {"revenue_pct": "7-15%", "products": ["custom ASICs"], "note": "rapidly growing"}
+      },
+      "competitors": ["SSNLF", "INTC", "GFS"]
+    },
+
+    "ASML": {
+      "name": "ASML Holding",
+      "tier1_suppliers": {
+        "ZEISS": {"role": "optics", "products": ["EUV optics"], "note": "24.9% owned by ASML", "status": "private"},
+        "TRMS": {"role": "materials", "products": ["ceramic components"], "name": "Trumpf", "status": "private"},
+        "AMAT": {"role": "components", "products": ["various"]},
+        "VECO": {"role": "equipment", "products": ["ion beam systems"], "name": "Veeco"}
+      },
+      "tier1_customers": {
+        "TSM": {"revenue_pct": "31%", "products": ["EUV", "DUV"]},
+        "SSNLF": {"revenue_pct": "20%", "products": ["EUV", "DUV"], "name": "Samsung", "native_ticker": "005930.KS"},
+        "INTC": {"revenue_pct": "15%", "products": ["EUV", "DUV"]},
+        "SKHIY": {"revenue_pct": "8%", "products": ["DUV"], "name": "SK Hynix"},
+        "MU": {"revenue_pct": "5%", "products": ["DUV"]}
+      },
+      "competitors": ["NIKN.JP", "CNNX.JP"],
+      "note": "Monopoly on EUV lithography"
+    },
+
+    "AMD": {
+      "name": "Advanced Micro Devices",
+      "tier1_suppliers": {
+        "TSM": {"role": "foundry", "products": ["all processors"], "revenue_concentration": "primary"},
+        "SKHIY": {"role": "memory", "products": ["HBM3e for MI300"]},
+        "SSNLF": {"role": "memory", "products": ["HBM3e"], "name": "Samsung", "native_ticker": "005930.KS"},
+        "GFS": {"role": "foundry", "products": ["legacy I/O dies"], "name": "GlobalFoundries"},
+        "SNPS": {"role": "eda", "products": ["chip design tools"]},
+        "CDNS": {"role": "eda", "products": ["verification tools"]}
+      },
+      "tier1_customers": {
+        "MSFT": {"products": ["MI300X", "EPYC"], "use_case": "Azure"},
+        "DELL": {"products": ["EPYC"], "use_case": "servers"},
+        "HPE": {"products": ["EPYC"], "use_case": "servers"},
+        "GOOGL": {"products": ["EPYC"], "use_case": "GCP"},
+        "META": {"products": ["MI300X"], "use_case": "AI inference"}
+      },
+      "competitors": ["NVDA", "INTC"]
+    },
+
+    "INTC": {
+      "name": "Intel Corporation",
+      "tier1_suppliers": {
+        "ASML": {"role": "lithography", "products": ["EUV systems"]},
+        "AMAT": {"role": "equipment", "products": ["deposition", "etch"]},
+        "LRCX": {"role": "equipment", "products": ["etch"]},
+        "KLAC": {"role": "equipment", "products": ["inspection"]},
+        "TSM": {"role": "foundry", "products": ["Lunar Lake", "some GPUs"], "note": "Intel 3 also internal"},
+        "GLW": {"role": "materials", "products": ["glass substrates"], "name": "Corning", "note": "Intel glass substrate partnership"}
+      },
+      "tier1_customers": {
+        "DELL": {"products": ["Xeon", "Core"], "use_case": "PCs and servers"},
+        "HPE": {"products": ["Xeon"], "use_case": "servers"},
+        "LNVGY": {"products": ["Core", "Xeon"], "name": "Lenovo"},
+        "HPQ": {"products": ["Core"], "use_case": "PCs"}
+      },
+      "competitors": ["AMD", "NVDA", "ARM", "QCOM"]
+    },
+
+    "AAPL": {
+      "name": "Apple Inc",
+      "tier1_suppliers": {
+        "TSM": {"role": "foundry", "products": ["all Apple Silicon"], "revenue_concentration": "sole source", "node": "3nm"},
+        "SSNLF": {"role": "displays/memory", "products": ["OLED displays", "NAND"], "name": "Samsung", "native_ticker": "005930.KS"},
+        "QCOM": {"role": "modems", "products": ["5G modems"], "note": "transitioning to Apple modems"},
+        "AVGO": {"role": "wireless", "products": ["WiFi/Bluetooth chips"]},
+        "TXN": {"role": "analog", "products": ["power management ICs"]},
+        "HNHPF": {"role": "assembly", "products": ["iPhone assembly"], "name": "Foxconn", "native_ticker": "2317.TW"},
+        "CRUS": {"role": "audio", "products": ["audio codecs"]},
+        "STM": {"role": "sensors", "products": ["various sensors"]},
+        "SNPS": {"role": "eda", "products": ["chip design software"]},
+        "ARM": {"role": "ip", "products": ["CPU architecture license"]}
+      },
+      "tier1_customers": {
+        "note": "Direct consumer sales; enterprise through carriers"
+      },
+      "competitors": ["SSNLF", "GOOGL", "MSFT"]
+    },
+
+    "SKHIY": {
+      "name": "SK Hynix",
+      "ticker_alt": "000660.KS",
+      "tier1_suppliers": {
+        "ASML": {"role": "lithography", "products": ["DUV systems"]},
+        "AMAT": {"role": "equipment", "products": ["deposition"]},
+        "LRCX": {"role": "equipment", "products": ["etch"]},
+        "TOELY": {"role": "equipment", "products": ["coater/developer"]},
+        "PCRFY": {"role": "materials", "products": ["die attach film"], "name": "Resonac", "note": "#1 in HBM stacking materials"}
+      },
+      "tier1_customers": {
+        "NVDA": {"revenue_pct": "~80% of HBM", "products": ["HBM3", "HBM3e"]},
+        "AMD": {"products": ["HBM3e"]},
+        "AAPL": {"products": ["NAND", "DRAM"]}
+      },
+      "competitors": ["SSNLF", "MU"],
+      "note": "57-62% HBM market share (Q3 2025), sold out through 2026, primary NVIDIA supplier"
+    },
+
+    "MU": {
+      "name": "Micron Technology",
+      "tier1_suppliers": {
+        "ASML": {"role": "lithography", "products": ["DUV systems"]},
+        "AMAT": {"role": "equipment", "products": ["deposition", "etch"]},
+        "LRCX": {"role": "equipment", "products": ["etch"]},
+        "PCRFY": {"role": "materials", "products": ["die attach film"], "name": "Resonac"}
+      },
+      "tier1_customers": {
+        "NVDA": {"products": ["HBM3e", "GDDR6X"]},
+        "AAPL": {"products": ["NAND", "DRAM"]},
+        "DELL": {"products": ["server memory"]},
+        "HPE": {"products": ["server memory"]}
+      },
+      "competitors": ["SSNLF", "SKHIY"]
+    },
+
+    "SNPS": {
+      "name": "Synopsys Inc",
+      "tier1_suppliers": {
+        "note": "Primarily software/IP - minimal physical supply chain"
+      },
+      "tier1_customers": {
+        "NVDA": {"products": ["design tools"], "note": "All GPUs designed with SNPS/CDNS"},
+        "AMD": {"products": ["design tools"]},
+        "AAPL": {"products": ["design tools"]},
+        "QCOM": {"products": ["design tools"]},
+        "INTC": {"products": ["design tools"]},
+        "AVGO": {"products": ["design tools"]}
+      },
+      "competitors": ["CDNS", "SIEGY"],
+      "note": "Duopoly with Cadence, ~35% market share"
+    },
+
+    "CDNS": {
+      "name": "Cadence Design Systems",
+      "tier1_suppliers": {
+        "note": "Primarily software/IP - minimal physical supply chain"
+      },
+      "tier1_customers": {
+        "NVDA": {"products": ["verification, emulation"]},
+        "AMD": {"products": ["design tools"]},
+        "AAPL": {"products": ["design tools"]},
+        "TSM": {"products": ["PDK development"]},
+        "INTC": {"products": ["design tools"]}
+      },
+      "competitors": ["SNPS", "SIEGY"],
+      "note": "Duopoly with Synopsys, ~35% market share"
+    }
+  },
+
+  "small_mid_cap_suppliers": {
+    "semiconductor_equipment": {
+      "ENTG": {
+        "name": "Entegris",
+        "market_cap": "~18B",
+        "role": "Ultra-pure chemicals, FOUPs, filters",
+        "customers": ["TSM", "SSNLF", "INTC", "MU", "SKHIY"],
+        "signal": "Fab capacity expansion announcements",
+        "lag": "1-2 days"
+      },
+      "PLAB": {
+        "name": "Photronics",
+        "market_cap": "~1.5B",
+        "role": "Photomasks for lithography",
+        "customers": ["TSM", "SSNLF", "INTC", "GFS"],
+        "signal": "New node ramps, EUV adoption",
+        "lag": "1-3 days"
+      },
+      "UCTT": {
+        "name": "Ultra Clean Holdings",
+        "market_cap": "~2.5B",
+        "role": "Gas/chemical delivery systems",
+        "customers": ["AMAT", "LRCX", "TSM"],
+        "signal": "Equipment orders, fab construction",
+        "lag": "2-3 days"
+      },
+      "ICHR": {
+        "name": "Ichor Holdings",
+        "market_cap": "~1B",
+        "role": "Gas delivery subsystems",
+        "customers": ["LRCX", "AMAT"],
+        "signal": "Lam/Applied orders",
+        "lag": "1-2 days"
+      },
+      "FORM": {
+        "name": "FormFactor",
+        "market_cap": "~4B",
+        "role": "Probe cards for wafer testing",
+        "customers": ["All chipmakers"],
+        "signal": "New chip tape-outs, yield improvements",
+        "lag": "1-2 days"
+      },
+      "ONTO": {
+        "name": "Onto Innovation",
+        "market_cap": "~8B",
+        "role": "Metrology and process control",
+        "customers": ["TSM", "SSNLF", "INTC"],
+        "signal": "Advanced packaging growth",
+        "lag": "1-2 days"
+      },
+      "ACLS": {
+        "name": "Axcelis Technologies",
+        "market_cap": "~5B",
+        "role": "Ion implantation equipment",
+        "customers": ["All major fabs"],
+        "signal": "Fab capacity news",
+        "lag": "1-2 days"
+      },
+      "AEHR": {
+        "name": "Aehr Test Systems",
+        "market_cap": "~1B",
+        "role": "Wafer-level burn-in and test",
+        "customers": ["SiC manufacturers", "AI chip makers"],
+        "signal": "EV/SiC demand, AI chip quality requirements",
+        "lag": "2-3 days"
+      },
+      "KLIC": {
+        "name": "Kulicke & Soffa",
+        "market_cap": "~2.5B",
+        "role": "Semiconductor packaging equipment",
+        "customers": ["OSAT companies", "IDMs"],
+        "signal": "Advanced packaging demand",
+        "lag": "2-3 days"
+      },
+      "BRKS": {
+        "name": "Brooks Automation",
+        "market_cap": "~4B",
+        "role": "Automation, contamination control",
+        "customers": ["All major fabs"],
+        "signal": "Fab automation investments",
+        "lag": "2-3 days"
+      }
+    },
+    "packaging_osat": {
+      "AMKR": {
+        "name": "Amkor Technology",
+        "market_cap": "~7B",
+        "role": "Advanced packaging (CoWoS alternative)",
+        "customers": ["AMD", "QCOM", "MediaTek"],
+        "signal": "TSM CoWoS capacity constraints",
+        "lag": "1-2 days"
+      },
+      "ASX": {
+        "name": "ASE Technology",
+        "market_cap": "~20B",
+        "role": "Largest OSAT provider",
+        "customers": ["All fabless companies"],
+        "signal": "Packaging demand, chiplet adoption",
+        "lag": "1-2 days"
+      }
+    },
+    "materials": {
+      "CCMP": {
+        "name": "CMC Materials (now part of Entegris)",
+        "status": "acquired",
+        "note": "CMP slurries business now under ENTG"
+      },
+      "MKSI": {
+        "name": "MKS Instruments",
+        "market_cap": "~9B",
+        "role": "Process control, vacuum",
+        "customers": ["Equipment OEMs", "fabs"],
+        "signal": "Equipment shipments",
+        "lag": "2-3 days"
+      }
+    },
+    "thermal_power": {
+      "VRT": {
+        "name": "Vertiv Holdings",
+        "market_cap": "~45B",
+        "role": "Data center thermal management, power",
+        "customers": ["Hyperscalers", "colo providers"],
+        "signal": "AI data center builds",
+        "lag": "3-5 days"
+      },
+      "EMR": {
+        "name": "Emerson Electric",
+        "market_cap": "~65B",
+        "role": "Industrial automation, cooling",
+        "customers": ["Data centers", "industrial"],
+        "signal": "Infrastructure buildouts",
+        "lag": "3-5 days"
+      }
+    }
+  },
+
+  "emerging_materials": {
+    "description": "Next-generation materials for advanced packaging - potential multi-year hype cycles",
+    "glass_substrates": {
+      "GLW": {
+        "ticker": "GLW",
+        "name": "Corning Incorporated",
+        "market_cap": "~35B",
+        "category": "glass_substrates",
+        "status": "emerging",
+        "products": ["Glass core substrates"],
+        "customers": ["INTC", "AAPL"],
+        "catalyst": "Intel/Apple adoption for 2026+ chips",
+        "moat": "Decades of specialty glass expertise",
+        "risk": "Still in qualification phase",
+        "signal": "Intel packaging announcements, Apple supply chain news",
+        "note": "Glass substrates enable 10x wiring density vs organic - critical for next-gen AI chips"
+      }
+    },
+    "packaging_films": {
+      "AJINY": {
+        "ticker": "AJINY",
+        "native_ticker": "2802.T",
+        "name": "Ajinomoto Co Inc",
+        "market_cap": "~25B",
+        "category": "abf_substrates",
+        "status": "current_monopoly",
+        "products": ["ABF (Ajinomoto Build-up Film)"],
+        "market_share": "~99%",
+        "customers": ["TSM", "INTC", "All advanced packagers"],
+        "moat": "Near-monopoly in ABF, essential for 99% of high-end CPUs/GPUs",
+        "risk": "Part of larger food company - exposure diluted",
+        "revenue_pct_from_electronics": "~15%",
+        "signal": "CPU/GPU shipment growth, advanced packaging demand",
+        "note": "Every H100, M-series, EPYC chip uses ABF substrates"
+      },
+      "PCRFY": {
+        "ticker": "PCRFY",
+        "native_ticker": "4004.T",
+        "name": "Resonac Holdings (formerly Showa Denko)",
+        "market_cap": "~8B",
+        "category": "hbm_materials",
+        "status": "current_leader",
+        "products": ["Die attach film", "Molding compounds", "CMP slurries"],
+        "customers": ["SKHIY", "SSNLF", "MU"],
+        "moat": "#1 supplier of HBM stacking materials",
+        "signal": "HBM production ramps, memory capex",
+        "note": "Critical bottleneck supplier for HBM - every HBM stack uses Resonac materials"
+      }
+    },
+    "substrates": {
+      "IBID": {
+        "ticker": "IBID",
+        "native_ticker": "4062.T",
+        "name": "Ibiden Co Ltd",
+        "market_cap": "~6B",
+        "category": "ic_substrates",
+        "status": "current",
+        "products": ["IC substrates", "Package substrates"],
+        "customers": ["INTC", "AMD"],
+        "moat": "Major Intel substrate supplier",
+        "tradeable_us": false,
+        "signal": "Intel/AMD server CPU shipments",
+        "note": "Track only - very thin US liquidity via OTC"
+      }
+    }
+  },
+
+  "aliases": {
+    "products": {
+      "hopper": "H100",
+      "blackwell": "B100",
+      "grace hopper": "GH200",
+      "instinct": "MI300X",
+      "graviton": "Graviton4",
+      "tensor processing unit": "TPU",
+      "apple silicon": "M4",
+      "fusion compiler": "Synopsys",
+      "palladium": "Cadence",
+      "calibre": "Siemens EDA"
+    },
+    "companies": {
+      "nvidia": "NVDA",
+      "amd": "AMD",
+      "intel": "INTC",
+      "tsmc": "TSM",
+      "taiwan semiconductor": "TSM",
+      "apple": "AAPL",
+      "microsoft": "MSFT",
+      "google": "GOOGL",
+      "alphabet": "GOOGL",
+      "amazon": "AMZN",
+      "meta": "META",
+      "facebook": "META",
+      "qualcomm": "QCOM",
+      "broadcom": "AVGO",
+      "sk hynix": "SKHIY",
+      "samsung": "SSNLF",
+      "samsung electronics": "SSNLF",
+      "micron": "MU",
+      "asml": "ASML",
+      "applied materials": "AMAT",
+      "lam research": "LRCX",
+      "kla": "KLAC",
+      "marvell": "MRVL",
+      "arm holdings": "ARM",
+      "arm": "ARM",
+      "synopsys": "SNPS",
+      "cadence": "CDNS",
+      "rambus": "RMBS",
+      "corning": "GLW",
+      "ajinomoto": "AJINY",
+      "resonac": "PCRFY",
+      "showa denko": "PCRFY",
+      "salesforce": "CRM",
+      "oracle": "ORCL",
+      "sap": "SAP",
+      "adobe": "ADBE",
+      "snowflake": "SNOW",
+      "mongodb": "MDB",
+      "datadog": "DDOG",
+      "crowdstrike": "CRWD",
+      "palo alto": "PANW",
+      "servicenow": "NOW",
+      "workday": "WDAY",
+      "nintendo": "NTDOY",
+      "tokyo electron": "TOELY"
+    }
+  },
+
+  "trading_signals": {
+    "earnings_cascade": {
+      "description": "When major tech reports earnings, suppliers often move with 1-3 day lag",
+      "patterns": [
+        {"trigger": "NVDA earnings beat", "watch": ["TSM", "SKHIY", "MU", "ENTG", "PLAB", "UCTT", "SNPS", "CDNS", "RMBS"]},
+        {"trigger": "NVDA guidance raise", "watch": ["ASML", "AMAT", "LRCX", "KLAC", "SNPS", "CDNS"]},
+        {"trigger": "TSM earnings/guidance", "watch": ["ASML", "AMAT", "LRCX", "ENTG", "PLAB", "AJINY"]},
+        {"trigger": "AAPL iPhone guidance", "watch": ["TSM", "QCOM", "AVGO", "CRUS"]},
+        {"trigger": "AMD MI300 commentary", "watch": ["TSM", "SKHIY", "SNPS", "CDNS"]}
+      ]
+    },
+    "capacity_announcements": {
+      "description": "Fab expansion news flows to equipment/materials suppliers",
+      "patterns": [
+        {"trigger": "TSM capex increase", "watch": ["ASML", "AMAT", "LRCX", "KLAC", "TOELY", "AJINY"]},
+        {"trigger": "TSM CoWoS expansion", "watch": ["AMKR", "ASX", "ENTG", "PCRFY"]},
+        {"trigger": "Memory capex increase", "watch": ["AMAT", "LRCX", "ASML", "PCRFY"]},
+        {"trigger": "Intel foundry news", "watch": ["ASML", "AMAT", "GLW"]}
+      ]
+    },
+    "product_launches": {
+      "description": "New product announcements signal demand for suppliers",
+      "patterns": [
+        {"trigger": "NVDA new GPU architecture", "watch": ["TSM", "SKHIY", "MU", "SNPS", "CDNS"]},
+        {"trigger": "Apple new iPhone", "watch": ["TSM", "QCOM", "AVGO"]},
+        {"trigger": "New gaming console", "watch": ["AMD", "TSM"]}
+      ]
+    },
+    "constraint_signals": {
+      "description": "Supply constraints benefit alternative providers",
+      "patterns": [
+        {"trigger": "CoWoS shortage reports", "watch_long": ["AMKR", "ASX"]},
+        {"trigger": "HBM shortage reports", "watch_long": ["MU", "PCRFY"]},
+        {"trigger": "EUV delivery delays", "watch_short": ["TSM capacity"], "watch_long": ["INTC foundry"]},
+        {"trigger": "ABF substrate shortage", "watch_long": ["AJINY"]}
+      ]
+    },
+    "eda_signals": {
+      "description": "EDA companies are leading indicators of chip design activity",
+      "patterns": [
+        {"trigger": "Major chip tape-out announced", "watch": ["SNPS", "CDNS"]},
+        {"trigger": "New architecture announcement", "watch": ["SNPS", "CDNS", "ARM"]},
+        {"trigger": "AI chip startup funding", "watch": ["SNPS", "CDNS", "ARM", "RMBS"]}
+      ]
+    }
+  }
+}

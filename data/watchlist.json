@@ -1,0 +1,51 @@
+{
+  "_metadata": {
+    "description": "Auto-generated watchlist from knowledge graph",
+    "last_updated": "2026-01-16",
+    "generated_by": "velites.modules.mapper"
+  },
+  "primary_tickers": [
+    "NVDA",
+    "TSM",
+    "ASML",
+    "AMD",
+    "SKHIY",
+    "MU",
+    "INTC",
+    "SNPS",
+    "CDNS",
+    "LRCX",
+    "AMAT"
+  ],
+  "news_keywords": [
+    "semiconductor",
+    "chip",
+    "wafer",
+    "foundry",
+    "HBM",
+    "GPU",
+    "AI accelerator",
+    "EUV",
+    "lithography",
+    "capacity",
+    "yield",
+    "shortage",
+    "delay",
+    "production"
+  ],
+  "arxiv_categories": [
+    "cs.AI",
+    "cs.LG",
+    "cs.AR",
+    "cs.CV"
+  ],
+  "patent_assignees": [
+    "TSMC",
+    "Taiwan Semiconductor Manufacturing",
+    "Advanced Micro Devices",
+    "NVIDIA",
+    "Intel Corporation",
+    "Samsung Electronics",
+    "SK Hynix"
+  ]
+}
