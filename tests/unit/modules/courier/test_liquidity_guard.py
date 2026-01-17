@@ -2,9 +2,9 @@
 
 import pytest
 
-from velites.modules.courier.liquidity_guard import LiquidityGuard
-from velites.models.market import LiquidityStatus, MarketState
-from velites.models.signal import AlphaSignal, SignalAction
+from modules.courier.liquidity_guard import LiquidityGuard
+from modules.scout.models import LiquidityStatus, MarketState
+from modules.courier.models import AlphaSignal, SignalAction
 
 
 class TestLiquidityGuard:
