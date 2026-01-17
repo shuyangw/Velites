@@ -6,7 +6,7 @@ from typing import Any
 
 import structlog
 
-from velites.config import settings
+from config import settings
 
 
 def configure_logging() -> None:

@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from velites.modules.scout.models import PaperObject, NewsObject, LiquidityStatus, MarketState
-from velites.modules.mapper.models import EntityNode, EntityRole
-from velites.modules.analyst.models import InnovationScore, SentimentScore
+from modules.scout.models import PaperObject, NewsObject, LiquidityStatus, MarketState
+from modules.mapper.models import EntityNode, EntityRole
+from modules.analyst.models import InnovationScore, SentimentScore
 
 
 @pytest.fixture

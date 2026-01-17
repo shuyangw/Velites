@@ -70,7 +70,7 @@ prod = [
 ]
 
 [project.scripts]
-velites = "velites.main:main"
+velites = "main:main"
 
 [project.urls]
 Homepage = "https://github.com/your-org/velites"
@@ -78,12 +78,13 @@ Documentation = "https://github.com/your-org/velites#readme"
 Repository = "https://github.com/your-org/velites"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/velites"]
+packages = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]
 asyncio_mode = "auto"
-addopts = "-v --cov=velites --cov-report=term-missing"
+addopts = "-v --cov=modules --cov-report=term-missing"
 
 [tool.mypy]
 python_version = "3.11"
@@ -120,4 +121,4 @@ ignore = [
 ]
 
 [tool.ruff.isort]
-known-first-party = ["velites"]
+known-first-party = ["modules", "config", "logging_config", "exceptions"]

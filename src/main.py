@@ -8,16 +8,16 @@ Designed to run periodically (e.g., every 4 hours) via cron or scheduler.
 import asyncio
 from datetime import datetime
 
-from velites.core.config import settings
-from velites.core.logging import configure_logging, get_logger
-from velites.models.signal import AlphaSignal, SignalAction
+from config import settings
+from logging_config import configure_logging, get_logger
+from modules.courier.models import AlphaSignal, SignalAction
 
 # Module imports
-from velites.modules.scout import ArxivFetcher, NewsFetcher, MarketFetcher
-from velites.modules.mapper import GraphEngine, SupplyChainNavigator, TickerNormalizer
-from velites.modules.analyst import LLMAgent, SentimentEngine, ConfluenceEngine
-from velites.modules.courier import Dispatcher, LiquidityGuard
-from velites.modules.scribe import Journal
+from modules.scout import ArxivFetcher, NewsFetcher, MarketFetcher
+from modules.mapper import GraphEngine, SupplyChainNavigator, TickerNormalizer
+from modules.analyst import LLMAgent, SentimentEngine, ConfluenceEngine
+from modules.courier import Dispatcher, LiquidityGuard
+from modules.scribe import Journal
 
 logger = get_logger(__name__)
 
