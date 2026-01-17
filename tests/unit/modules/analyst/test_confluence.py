@@ -2,8 +2,9 @@
 
 import pytest
 
-from velites.modules.analyst.confluence import ConfluenceEngine
-from velites.models.signal import InnovationScore, SentimentScore, SignalAction
+from modules.analyst.confluence import ConfluenceEngine
+from modules.analyst.models import InnovationScore, SentimentScore
+from modules.courier.models import SignalAction
 
 
 class TestConfluenceEngine:
