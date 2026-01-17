@@ -2,9 +2,9 @@
 
 import pytest
 
-from velites.modules.mapper.graph_engine import GraphEngine
-from velites.modules.mapper.ticker_normalizer import TickerNormalizer
-from velites.modules.mapper.models import RiskFlag
+from modules.mapper.graph_engine import GraphEngine
+from modules.mapper.ticker_normalizer import TickerNormalizer
+from modules.mapper.models import RiskFlag
 
 
 class TestTickerNormalizerWithRealData:
@@ -122,10 +122,11 @@ class TestTickerNormalizerEdgeCases:
 
     def test_normalize_unknown_non_us_ticker(self, normalizer: TickerNormalizer) -> None:
         """Test normalizing an unknown non-US ticker."""
-        result = normalizer.normalize("9999.XX")
+        # Use a Korean suffix (.KS) that's recognized as non-US
+        result = normalizer.normalize("9999.KS")
 
         # Should return original with warning
-        assert result.symbol == "9999.XX"
+        assert result.symbol == "9999.KS"
         assert result.venue == "UNKNOWN"
         assert RiskFlag.LOW_LIQUIDITY in result.risk_flags
 

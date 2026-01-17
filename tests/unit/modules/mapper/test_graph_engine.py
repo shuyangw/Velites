@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from velites.modules.mapper.graph_engine import GraphEngine
-from velites.modules.mapper.exceptions import GraphTraversalError
-from velites.modules.mapper.models import EntityRole
+from modules.mapper.graph_engine import GraphEngine
+from modules.mapper.exceptions import GraphTraversalError
+from modules.mapper.models import EntityRole
 
 
 class TestGraphEngine:
