@@ -2,8 +2,9 @@
 
 import pytest
 
-from velites.modules.scout.arxiv_fetcher import ArxivFetcher
-from velites.models.paper import PaperObject
+from modules.scout.arxiv_fetcher import ArxivFetcher
+from modules.scout.exceptions import DataFetchError
+from modules.scout.models import PaperObject
 
 
 class TestArxivFetcher:
@@ -45,10 +46,16 @@ class TestArxivFetcher:
         assert len(filtered) == 1
         assert filtered[0] == sample_paper
 
-    @pytest.mark.asyncio
-    async def test_fetch_papers_not_implemented(self) -> None:
-        """Test that fetch_papers raises NotImplementedError."""
+    def test_fetch_papers_requires_feedparser(self) -> None:
+        """Test that fetch_papers raises DataFetchError if feedparser not installed."""
+        import asyncio
+        import sys
+
         fetcher = ArxivFetcher()
 
-        with pytest.raises(NotImplementedError):
-            await fetcher.fetch_papers()
+        # If feedparser is installed, this test should be skipped
+        if "feedparser" in sys.modules:
+            pytest.skip("feedparser is installed, cannot test missing dependency")
+
+        with pytest.raises(DataFetchError, match="feedparser"):
+            asyncio.new_event_loop().run_until_complete(fetcher.fetch_papers())
