@@ -2,11 +2,19 @@
 Velites Main Orchestrator
 
 The Event Loop that coordinates all modules in a DAG workflow.
-Designed to run periodically (e.g., every 4 hours) via cron or scheduler.
+Supports both single-run mode and scheduled execution via APScheduler.
+
+Usage:
+    python -m src.main                  # Single run (default)
+    python -m src.main --mode scheduled # Scheduled execution every 4 hours
+    python -m src.main --mode single    # Explicit single run
 """
 
+import argparse
 import asyncio
-from datetime import datetime
+import signal
+import sys
+from datetime import datetime, timezone
 
 from config import settings
 from logging_config import configure_logging, get_logger
@@ -76,7 +84,7 @@ class VelitesOrchestrator:
         Returns:
             List of generated signals
         """
-        run_id = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         logger.info("starting_pipeline_run", run_id=run_id)
 
         signals: list[AlphaSignal] = []
@@ -100,10 +108,15 @@ class VelitesOrchestrator:
             # Step 4: Liquidity Check & Dispatch
             signals = await self._step_dispatch(raw_signals)
 
+            # Log run summary
             logger.info(
                 "pipeline_run_complete",
                 run_id=run_id,
                 signals_generated=len(signals),
+                signals_dispatched=[
+                    {"ticker": s.ticker, "action": s.action.value, "confidence": round(s.confidence, 2)}
+                    for s in signals
+                ],
             )
 
         except Exception as e:
@@ -128,6 +141,8 @@ class VelitesOrchestrator:
         logger.info("step_entity_resolution_start", item_count=len(items))
 
         enriched = []
+        skipped_no_entities = 0
+
         for item in items:
             paper = item["paper"]
             text = f"{paper.title} {paper.abstract}"
@@ -135,13 +150,37 @@ class VelitesOrchestrator:
             # Resolve entities
             entities = self.graph_engine.resolve_text(text)
             if not entities:
+                skipped_no_entities += 1
+                logger.debug(
+                    "paper_no_entities",
+                    paper_id=paper.id,
+                    title=paper.title[:80],
+                )
                 continue
 
             # Get primary ticker
             primary = max(entities, key=lambda e: e.confidence)
+            all_tickers = [e.ticker for e in entities]
 
-            # Get supply chain dependencies
-            dependencies = self.supply_chain.get_dependencies(primary.ticker)
+            logger.info(
+                "paper_entities_resolved",
+                paper_id=paper.id,
+                title=paper.title[:60],
+                primary_ticker=primary.ticker,
+                all_tickers=all_tickers[:5],  # Limit to first 5
+                confidence=round(primary.confidence, 2),
+            )
+
+            # Get supply chain dependencies (may fail for tickers not in graph)
+            try:
+                dependencies = self.supply_chain.get_dependencies(primary.ticker)
+            except Exception as e:
+                logger.debug(
+                    "supply_chain_lookup_skipped",
+                    ticker=primary.ticker,
+                    error=str(e),
+                )
+                dependencies = None
 
             enriched.append({
                 **item,
@@ -150,7 +189,11 @@ class VelitesOrchestrator:
                 "dependencies": dependencies,
             })
 
-        logger.info("step_entity_resolution_complete", enriched_count=len(enriched))
+        logger.info(
+            "step_entity_resolution_complete",
+            enriched_count=len(enriched),
+            skipped_no_entities=skipped_no_entities,
+        )
         return enriched
 
     async def _step_signal_generation(self, items: list[dict]) -> list[AlphaSignal]:
@@ -158,9 +201,29 @@ class VelitesOrchestrator:
         logger.info("step_signal_generation_start", item_count=len(items))
 
         signals = []
-        for item in items:
+        decisions = {"BUY_LONG": 0, "WAIT": 0, "IGNORE": 0, "NO_GO": 0}
+
+        for idx, item in enumerate(items):
             paper = item["paper"]
             ticker = item["primary_ticker"]
+
+            logger.info(
+                "processing_paper",
+                progress=f"{idx + 1}/{len(items)}",
+                paper_id=paper.id,
+                ticker=ticker,
+                title=paper.title[:60],
+            )
+
+            # Log full paper details for traceability (debug level)
+            logger.debug(
+                "paper_full_details",
+                paper_id=paper.id,
+                title=paper.title,
+                abstract=paper.abstract,
+                authors=getattr(paper, "authors", [])[:3],
+                published=str(getattr(paper, "published", "")),
+            )
 
             # Parallel analysis
             innovation_task = self.llm_agent.grade_innovation(
@@ -172,9 +235,28 @@ class VelitesOrchestrator:
 
             # Fetch news for sentiment
             news = await self.news_fetcher.fetch_news([ticker])
+
+            # Log news headlines used for sentiment (debug level)
+            if news:
+                logger.debug(
+                    "news_for_sentiment",
+                    ticker=ticker,
+                    news_count=len(news),
+                    headlines=[n.headline[:100] for n in news[:10]],
+                )
+
             sentiment = await self.sentiment_engine.analyze_sentiment(news, ticker)
 
             innovation = await innovation_task
+
+            # Log full innovation reasoning (debug level)
+            logger.debug(
+                "innovation_analysis_complete",
+                paper_id=paper.id,
+                ticker=ticker,
+                score=innovation.score,
+                full_reasoning=innovation.reasoning,
+            )
 
             # Generate confluence signal
             signal = self.confluence_engine.generate_signal(
@@ -184,10 +266,44 @@ class VelitesOrchestrator:
                 source_type="arxiv",
             )
 
+            # Log the decision with all input data
+            logger.info(
+                "signal_decision",
+                paper_id=paper.id,
+                ticker=ticker,
+                action=signal.action.value,
+                confidence=round(signal.confidence, 2),
+                innovation_score=round(innovation.score, 2),
+                sentiment_score=round(sentiment.score, 2),
+                hype_volume=round(sentiment.hype_volume, 2),
+                news_count=len(news),
+                reasoning=signal.reasoning[:100] if signal.reasoning else "",
+            )
+
+            # Log full signal details (debug level)
+            logger.debug(
+                "signal_full_details",
+                signal_id=signal.signal_id,
+                paper_id=paper.id,
+                ticker=ticker,
+                action=signal.action.value,
+                confidence=signal.confidence,
+                full_reasoning=signal.reasoning,
+                innovation_reasoning=innovation.reasoning,
+                valid_until=str(signal.valid_until),
+                risk_flags=[str(f) for f in signal.risk_flags],
+            )
+
+            decisions[signal.action.value] = decisions.get(signal.action.value, 0) + 1
+
             if signal.action not in (SignalAction.IGNORE, SignalAction.NO_GO):
                 signals.append(signal)
 
-        logger.info("step_signal_generation_complete", signal_count=len(signals))
+        logger.info(
+            "step_signal_generation_complete",
+            signal_count=len(signals),
+            decisions=decisions,
+        )
         return signals
 
     async def _step_dispatch(self, signals: list[AlphaSignal]) -> list[AlphaSignal]:
@@ -219,17 +335,101 @@ class VelitesOrchestrator:
         return validated_signals
 
 
-async def main() -> None:
-    """Main entry point."""
+async def run_single(orchestrator: VelitesOrchestrator) -> list[AlphaSignal]:
+    """Run the pipeline once."""
+    return await orchestrator.run_pipeline()
+
+
+async def run_scheduled(orchestrator: VelitesOrchestrator) -> None:
+    """Run the pipeline on a schedule using APScheduler."""
+    try:
+        from apscheduler.schedulers.asyncio import AsyncIOScheduler
+        from apscheduler.triggers.interval import IntervalTrigger
+    except ImportError:
+        logger.error("apscheduler_not_installed", hint="pip install apscheduler")
+        sys.exit(1)
+
+    scheduler = AsyncIOScheduler()
+
+    async def scheduled_run():
+        """Wrapper for scheduled execution."""
+        try:
+            signals = await orchestrator.run_pipeline()
+            logger.info("scheduled_run_complete", signals=len(signals))
+        except Exception as e:
+            logger.error("scheduled_run_failed", error=str(e))
+
+    # Add job to run at specified interval
+    scheduler.add_job(
+        scheduled_run,
+        trigger=IntervalTrigger(hours=settings.run_interval_hours),
+        id="velites_pipeline",
+        replace_existing=True,
+    )
+
+    scheduler.start()
+    logger.info(
+        "scheduler_started",
+        interval_hours=settings.run_interval_hours,
+        next_run=scheduler.get_job("velites_pipeline").next_run_time,
+    )
+
+    # Run immediately if configured
+    if settings.run_at_startup:
+        logger.info("running_at_startup")
+        await scheduled_run()
+
+    # Setup graceful shutdown
+    shutdown_event = asyncio.Event()
+
+    def handle_shutdown(signum, frame):
+        logger.info("shutdown_signal_received", signal=signum)
+        shutdown_event.set()
+
+    signal.signal(signal.SIGINT, handle_shutdown)
+    signal.signal(signal.SIGTERM, handle_shutdown)
+
+    # Keep running until shutdown
+    try:
+        await shutdown_event.wait()
+    finally:
+        scheduler.shutdown(wait=False)
+        logger.info("scheduler_shutdown")
+
+
+async def main(mode: str | None = None) -> None:
+    """
+    Main entry point.
+
+    Args:
+        mode: Run mode - "single" or "scheduled" (default from settings)
+    """
     configure_logging()
-    logger.info("velites_starting", version=settings.app_version)
+    run_mode = mode or settings.run_mode
+    logger.info("velites_starting", version=settings.app_version, mode=run_mode)
 
     orchestrator = VelitesOrchestrator()
     await orchestrator.initialize()
-    signals = await orchestrator.run_pipeline()
 
-    logger.info("velites_complete", signals=len(signals))
+    if run_mode == "scheduled":
+        await run_scheduled(orchestrator)
+    else:
+        signals = await run_single(orchestrator)
+        logger.info("velites_complete", signals=len(signals))
+
+
+def parse_args():
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser(description="Velites Quantamental Research Agent")
+    parser.add_argument(
+        "--mode",
+        choices=["single", "scheduled"],
+        default=None,
+        help="Run mode: single (run once) or scheduled (run every N hours)",
+    )
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    args = parse_args()
+    asyncio.run(main(mode=args.mode))
