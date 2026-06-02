@@ -87,6 +87,13 @@ logs/
 *.db
 *.sqlite3
 
+# Pipeline run artifacts (regenerate via scripts/save_enriched.py)
+data/test_enriched.json
+data/enriched_*.json
+
+# Scratch / experimental scripts
+scripts/scratch/
+
 # Secrets (NEVER commit these)
 .env.local
 .env.production

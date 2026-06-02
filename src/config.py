@@ -33,7 +33,7 @@ class Settings(BaseSettings):
         default=["cs.AI", "cs.LG", "cs.AR", "cs.CV"]
     )
     arxiv_max_results: int = 100
-    arxiv_lookback_hours: int = 24
+    arxiv_lookback_hours: int = 72  # 72h accounts for weekends + batch publishing
 
     # Scout - News
     tiingo_api_key: str = ""
@@ -56,6 +56,11 @@ class Settings(BaseSettings):
     sentiment_model: str = "ProsusAI/finbert"
     sentiment_veto_threshold: float = -0.6
 
+    # Analyst - Confluence Thresholds
+    confluence_innovation_threshold: float = 0.7
+    confluence_sentiment_veto_threshold: float = -0.5
+    confluence_hype_threshold: float = 3.0
+
     # Courier - Homeguard
     homeguard_webhook_url: str = ""
     homeguard_output_dir: str = "output/signals"
@@ -68,7 +73,14 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///data/velites.db"
 
     # Scheduling
+    run_mode: Literal["single", "scheduled"] = "single"
     run_interval_hours: int = 4
+    run_at_startup: bool = True
+
+    # Logging
+    log_file_path: str = "logs/velites.log"
+    log_to_file: bool = True
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
 
 
 @lru_cache
