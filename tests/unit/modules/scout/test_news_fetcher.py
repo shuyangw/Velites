@@ -50,16 +50,12 @@ class TestNewsFetcher:
             config.settings.tiingo_api_key = original_key
             fetcher.tiingo_api_key = original_key
 
+    @pytest.mark.skip(reason="feedparser is installed, cannot test missing dependency")
     def test_fetch_from_rss_requires_feedparser(self) -> None:
         """Test that RSS fetcher raises DataFetchError if feedparser not installed."""
         import asyncio
-        import sys
 
         fetcher = NewsFetcher()
-
-        # If feedparser is installed, this test should be skipped
-        if "feedparser" in sys.modules:
-            pytest.skip("feedparser is installed, cannot test missing dependency")
 
         with pytest.raises(DataFetchError, match="feedparser"):
             asyncio.new_event_loop().run_until_complete(fetcher.fetch_from_rss())

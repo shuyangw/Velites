@@ -318,3 +318,32 @@ class Journal:
                 "best_ticker": None,
                 "worst_ticker": None,
             }
+
+    async def get_signal_by_id(self, signal_id: str) -> dict[str, Any] | None:
+        """
+        Retrieve a single signal by ID.
+
+        Args:
+            signal_id: The signal ID to look up
+
+        Returns:
+            Signal record as dict, or None if not found
+        """
+        if self._session_factory is None:
+            return None
+
+        try:
+            async with self._session_factory() as session:
+                result = await session.execute(
+                    select(SignalRecord).where(SignalRecord.id == signal_id)
+                )
+                record = result.scalar_one_or_none()
+
+                if record is None:
+                    return None
+
+                return record.to_dict()
+
+        except Exception as e:
+            logger.error("signal_query_failed", signal_id=signal_id, error=str(e))
+            return None

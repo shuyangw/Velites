@@ -6,7 +6,7 @@ in relevant categories (cs.AI, cs.LG, cs.AR, cs.CV).
 """
 
 from abc import ABC, abstractmethod
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from config import settings
 from logging_config import get_logger
@@ -71,7 +71,7 @@ class ArxivFetcher(BaseArxivFetcher):
         """
         categories = categories or self.categories
         lookback_hours = lookback_hours or self.lookback_hours
-        cutoff_date = datetime.utcnow() - timedelta(hours=lookback_hours)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(hours=lookback_hours)
 
         logger.info(
             "fetching_arxiv_papers",
@@ -104,15 +104,21 @@ class ArxivFetcher(BaseArxivFetcher):
             papers: list[PaperObject] = []
 
             for entry in feed.entries:
-                # Parse publication date
-                if hasattr(entry, "published_parsed") and entry.published_parsed:
-                    published = datetime(*entry.published_parsed[:6])
+                # Parse dates - use updated_parsed for filtering (catches updates)
+                # but keep published_parsed for the actual publication date
+                if hasattr(entry, "updated_parsed") and entry.updated_parsed:
+                    updated = datetime(*entry.updated_parsed[:6], tzinfo=timezone.utc)
                 else:
                     # Skip entries without valid date
                     continue
 
-                # Filter by cutoff date
-                if published < cutoff_date:
+                if hasattr(entry, "published_parsed") and entry.published_parsed:
+                    published = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
+                else:
+                    published = updated
+
+                # Filter by cutoff date using updated date (more recent)
+                if updated < cutoff_date:
                     continue
 
                 # Extract paper ID from URL (e.g., http://arxiv.org/abs/2601.12345v1)
