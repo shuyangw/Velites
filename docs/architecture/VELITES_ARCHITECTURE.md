@@ -98,7 +98,31 @@ settings.alpaca_api_key
 settings.llm_provider          # "openai" or "anthropic"
 settings.market_data_provider  # "yfinance" or "alpaca"
 settings.database_url          # SQLite or PostgreSQL
+
+# Confluence thresholds
+settings.confluence_innovation_threshold      # 0.7 (signal if above)
+settings.confluence_sentiment_veto_threshold  # -0.5 (veto if below)
+settings.confluence_hype_threshold            # 3.0 (hold if above)
+
+# Scheduling
+settings.run_mode              # "single" or "scheduled"
+settings.run_interval_hours    # 4 (for scheduled mode)
+settings.run_at_startup        # True (run immediately on start)
 ```
+
+## Run Modes
+
+Velites supports two execution modes:
+
+| Mode | Command | Behavior |
+|------|---------|----------|
+| **Single** | `python -m src.main --mode single` | Run pipeline once and exit |
+| **Scheduled** | `python -m src.main --mode scheduled` | APScheduler runs every N hours |
+
+In scheduled mode:
+- Pipeline runs immediately if `run_at_startup` is True
+- Subsequent runs at `run_interval_hours` intervals
+- Graceful shutdown on SIGINT/SIGTERM
 
 ## Directory Structure
 
@@ -117,6 +141,33 @@ src/
 tests/
   unit/modules/     # Unit tests per module
   integration/      # Cross-module tests
+
+scripts/
+  smoke_test.py     # End-to-end module verification
+  view_signals.py   # Query and display journal database
+  save_enriched.py  # Capture pipeline state after entity resolution
+  replay_signals.py # Regenerate signals with different thresholds
+  run_pipeline.py   # Simple pipeline runner
+  test_modules.py   # Module import verification
+```
+
+## Operational Scripts
+
+| Script | Purpose | Usage |
+|--------|---------|-------|
+| `smoke_test.py` | Verify all modules work end-to-end | `python scripts/smoke_test.py --dry-run` |
+| `view_signals.py` | Query journal database | `python scripts/view_signals.py --stats` |
+| `save_enriched.py` | Save enriched papers for replay | `python scripts/save_enriched.py --output data/enriched.json` |
+| `replay_signals.py` | Test different thresholds | `python scripts/replay_signals.py --input data/enriched.json` |
+
+**Replay Workflow:**
+```bash
+# 1. Save enriched papers (runs Scout + Mapper)
+python scripts/save_enriched.py --output data/enriched.json
+
+# 2. Replay with different thresholds (fast iteration)
+python scripts/replay_signals.py --input data/enriched.json \
+    --innovation-threshold 0.6 --hype-threshold 2.5
 ```
 
 ## Key Design Decisions
