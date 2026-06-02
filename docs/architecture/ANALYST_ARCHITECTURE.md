@@ -28,6 +28,16 @@ Analyst transforms raw data into actionable scores:
     v               v                   FinBERT
  Anthropic      OpenAI              (ProsusAI/finbert)
    API           API
+            \                             /
+             \                           /
+              v                         v
+              +-------------------------+
+              |   ConfluenceEngine      |
+              | (Final Decision Matrix) |
+              +-------------------------+
+                          |
+                          v
+                    AlphaSignal
 ```
 
 ## Components
@@ -100,6 +110,66 @@ weight = exp(-0.1 * hours_old)
 ```python
 settings.sentiment_model         # "ProsusAI/finbert"
 settings.sentiment_veto_threshold  # -0.6 (veto if below)
+```
+
+### ConfluenceEngine (`confluence.py`)
+
+Final decision matrix that combines innovation and sentiment scores into trading signals.
+
+**Key Methods:**
+- `generate_signal(ticker, innovation, sentiment, source_type)` - Main entry
+- `_calculate_confidence(innovation, sentiment, source_type)` - Confidence scoring
+- `_create_signal(...)` - AlphaSignal factory
+
+**Decision Logic:**
+
+```
+                     Sentiment Score
+                           |
+                           v
+                   sentiment < -0.5?
+                           |
+                    +------+------+
+                    |             |
+                   YES            NO
+                    |             |
+                    v             v
+                  VETO      hype_volume >= 3.0?
+               (IGNORE)           |
+                           +------+------+
+                           |             |
+                          YES            NO
+                           |             |
+                           v             v
+                         WAIT      innovation > 0.7?
+                     (Too crowded)       |
+                                  +------+------+
+                                  |             |
+                                  NO           YES
+                                  |             |
+                                  v             v
+                               IGNORE       BUY_LONG
+                          (Low innovation)  (Signal!)
+```
+
+**Time-Lag Bonus:**
+- ArXiv (leading indicator) + quiet news (lagging) = higher confidence
+- If `source_type == "arxiv"` and `hype_volume < 1.0`: confidence * 1.2
+
+**Configuration (all thresholds configurable):**
+```python
+settings.confluence_innovation_threshold      # 0.7 (default)
+settings.confluence_sentiment_veto_threshold  # -0.5 (default)
+settings.confluence_hype_threshold            # 3.0 std devs (default)
+```
+
+Thresholds can also be overridden at instantiation:
+```python
+engine = ConfluenceEngine(
+    innovation_threshold=0.6,
+    sentiment_veto_threshold=-0.4,
+    hype_threshold=2.5,
+)
 ```
 
 ## Data Models
@@ -211,8 +281,9 @@ def load_model(self):
 ```
 src/modules/analyst/
     __init__.py
-    llm_agent.py
-    sentiment_engine.py
-    models.py
-    exceptions.py
+    llm_agent.py        # LLM-based innovation scoring
+    sentiment_engine.py # FinBERT sentiment analysis
+    confluence.py       # Final decision matrix
+    models.py           # InnovationScore, SentimentScore
+    exceptions.py       # LLMError, SentimentError
 ```

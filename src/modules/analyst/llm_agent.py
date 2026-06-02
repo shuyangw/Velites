@@ -221,30 +221,54 @@ class LLMAgent(BaseLLMAgent):
         """
         Parse LLM response JSON into InnovationScore.
 
-        Handles malformed JSON with regex fallback.
+        Handles markdown code blocks and malformed JSON with regex fallback.
         """
+        # Strip markdown code blocks (```json ... ``` or ``` ... ```)
+        cleaned = content.strip()
+        if cleaned.startswith("```"):
+            # Remove opening ``` or ```json
+            lines = cleaned.split("\n")
+            if lines[0].startswith("```"):
+                lines = lines[1:]  # Remove first line
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]  # Remove last line
+            cleaned = "\n".join(lines).strip()
+
         # Try direct JSON parsing first
         try:
-            data = json.loads(content)
+            data = json.loads(cleaned)
             score = float(data.get("score", 0.0))
             reasoning = data.get("reasoning", "No reasoning provided")
+
+            logger.debug(
+                "innovation_score_parsed",
+                ticker=ticker,
+                paper_id=paper_id,
+                score=score,
+                reasoning=reasoning[:100],
+            )
         except (json.JSONDecodeError, ValueError):
             # Fallback: regex extraction for malformed JSON
-            logger.warning("json_parse_failed", content=content[:200])
+            logger.warning("json_parse_failed", ticker=ticker, content=cleaned[:200])
 
-            score_match = re.search(r'"score"\s*:\s*(-?[\d.]+)', content)
-            reasoning_match = re.search(r'"reasoning"\s*:\s*"([^"]*)"', content)
+            score_match = re.search(r'"score"\s*:\s*(-?[\d.]+)', cleaned)
+            reasoning_match = re.search(r'"reasoning"\s*:\s*"([^"]*)"', cleaned)
 
             if score_match:
                 try:
                     score = float(score_match.group(1))
                     reasoning = reasoning_match.group(1) if reasoning_match else "Extracted via regex"
+                    logger.debug(
+                        "innovation_score_extracted_regex",
+                        ticker=ticker,
+                        score=score,
+                    )
                 except ValueError:
                     score = 0.0
                     reasoning = "Failed to parse LLM response"
             else:
                 # Final fallback: neutral score
-                logger.error("llm_response_unparseable", content=content[:500])
+                logger.error("llm_response_unparseable", ticker=ticker, content=cleaned[:500])
                 score = 0.0
                 reasoning = "Failed to parse LLM response"
 

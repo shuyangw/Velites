@@ -5,9 +5,10 @@ Combines innovation and sentiment scores with time-lag logic
 and hype filtering to produce final trading signals.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import uuid
 
+from config import settings
 from logging_config import get_logger
 from modules.mapper.models import RiskFlag
 from modules.analyst.models import InnovationScore, SentimentScore
@@ -23,16 +24,31 @@ class ConfluenceEngine:
     Applies:
     - Innovation + Sentiment combination
     - Time-Lag Logic: ArXiv (Leading) + News Quiet (Lagging) = High Confidence
-    - Hype Filter: News Volume > 3σ = Hold/Wait (Too crowded)
+    - Hype Filter: News Volume >= threshold = Hold/Wait (Too crowded)
+
+    Thresholds are configurable via settings:
+    - confluence_innovation_threshold (default: 0.7)
+    - confluence_sentiment_veto_threshold (default: -0.5)
+    - confluence_hype_threshold (default: 3.0 standard deviations)
     """
 
-    # Thresholds
-    INNOVATION_THRESHOLD = 0.7
-    SENTIMENT_VETO_THRESHOLD = -0.5
-    HYPE_THRESHOLD = 3.0  # Standard deviations
+    def __init__(
+        self,
+        innovation_threshold: float | None = None,
+        sentiment_veto_threshold: float | None = None,
+        hype_threshold: float | None = None,
+    ) -> None:
+        """
+        Initialize with optional threshold overrides.
 
-    def __init__(self) -> None:
-        pass
+        Args:
+            innovation_threshold: Override for innovation threshold
+            sentiment_veto_threshold: Override for sentiment veto threshold
+            hype_threshold: Override for hype threshold
+        """
+        self.innovation_threshold = innovation_threshold or settings.confluence_innovation_threshold
+        self.sentiment_veto_threshold = sentiment_veto_threshold or settings.confluence_sentiment_veto_threshold
+        self.hype_threshold = hype_threshold or settings.confluence_hype_threshold
 
     def generate_signal(
         self,
@@ -65,13 +81,31 @@ class ConfluenceEngine:
         logger.info(
             "generating_confluence_signal",
             ticker=ticker,
+            innovation_score=round(innovation.score, 3),
+            sentiment_score=round(sentiment.score, 3),
+            hype_volume=round(sentiment.hype_volume, 2),
+            thresholds={
+                "innovation": self.innovation_threshold,
+                "sentiment_veto": self.sentiment_veto_threshold,
+                "hype": self.hype_threshold,
+            },
+        )
+
+        # Log the decision path (debug level)
+        logger.debug(
+            "confluence_decision_inputs",
+            ticker=ticker,
+            paper_id=innovation.paper_id,
             innovation_score=innovation.score,
+            innovation_reasoning=innovation.reasoning,
             sentiment_score=sentiment.score,
+            sentiment_is_veto=sentiment.is_veto,
             hype_volume=sentiment.hype_volume,
+            source_type=source_type,
         )
 
         # Check veto conditions
-        if sentiment.is_veto or sentiment.score < self.SENTIMENT_VETO_THRESHOLD:
+        if sentiment.is_veto or sentiment.score < self.sentiment_veto_threshold:
             logger.info("signal_vetoed_by_sentiment", ticker=ticker)
             return self._create_signal(
                 ticker=ticker,
@@ -83,8 +117,8 @@ class ConfluenceEngine:
                 risk_flags=risk_flags,
             )
 
-        # Check hype filter
-        if sentiment.hype_volume > self.HYPE_THRESHOLD:
+        # Check hype filter (>= for safety at boundary)
+        if sentiment.hype_volume >= self.hype_threshold:
             logger.info("signal_held_due_to_hype", ticker=ticker)
             return self._create_signal(
                 ticker=ticker,
@@ -96,8 +130,8 @@ class ConfluenceEngine:
                 risk_flags=risk_flags,
             )
 
-        # Check innovation threshold
-        if innovation.score < self.INNOVATION_THRESHOLD:
+        # Check innovation threshold (<= to include boundary)
+        if innovation.score <= self.innovation_threshold:
             logger.info("signal_ignored_low_innovation", ticker=ticker)
             return self._create_signal(
                 ticker=ticker,
@@ -158,7 +192,7 @@ class ConfluenceEngine:
             ticker=ticker,
             confidence=confidence,
             reasoning=reasoning,
-            valid_until=datetime.utcnow() + timedelta(hours=24),
+            valid_until=datetime.now(timezone.utc) + timedelta(hours=24),
             risk_flags=risk_flags,
             source_paper_id=innovation.paper_id,
             innovation_score=innovation.score,

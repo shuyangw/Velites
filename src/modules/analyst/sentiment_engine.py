@@ -107,6 +107,8 @@ class SentimentEngine:
         total_weight = 0.0
         weighted_sum = 0.0
 
+        headline_scores = []
+
         for news in news_items:
             # Calculate recency weight: exp(-decay * hours_old)
             if news.timestamp.tzinfo is None:
@@ -122,8 +124,23 @@ class SentimentEngine:
             # Analyze headline sentiment
             sentiment = self._analyze_single_headline(news.headline)
 
+            headline_scores.append({
+                "headline": news.headline[:80],
+                "sentiment": round(sentiment, 3),
+                "weight": round(weight, 3),
+                "hours_old": round(hours_old, 1),
+            })
+
             weighted_sum += sentiment * weight
             total_weight += weight
+
+        # Log all headline scores (debug level)
+        logger.debug(
+            "sentiment_headline_scores",
+            ticker=ticker,
+            headline_count=len(headline_scores),
+            scores=headline_scores,
+        )
 
         # Calculate weighted average
         avg_score = weighted_sum / total_weight if total_weight > 0 else 0.0
@@ -133,6 +150,16 @@ class SentimentEngine:
 
         # Check veto condition
         is_veto = self.should_veto(avg_score)
+
+        # Log sentiment analysis result
+        logger.info(
+            "sentiment_analysis_complete",
+            ticker=ticker,
+            score=round(avg_score, 3),
+            hype_volume=round(hype_volume, 2),
+            news_count=len(news_items),
+            is_veto=is_veto,
+        )
 
         if is_veto:
             logger.warning(
