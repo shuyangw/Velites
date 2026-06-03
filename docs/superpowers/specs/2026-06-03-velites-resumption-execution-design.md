@@ -5,6 +5,14 @@
 **Source plan:** `20260602_velites_resumption_plan_v2.md` (to be committed to `docs/planning/20260602_velites_resumption_plan.md` in Phase 1)
 **Scope decision:** Plan all 6 phases at task-level detail. Phases 4-6 are tagged conditional on a Phase-3 GO.
 
+**Spec revision (this version) incorporates 6 review catches:**
+1. The watchlist fork is universe-defining (not a doc item) - promoted to an explicit early decision that fixes the universe for all universe-dependent Phase-3 steps.
+2. Historical ArXiv acquisition is unbuilt engineering on the critical path - added as a gating prerequisite; Phase 3 re-tagged multiple-XL.
+3. The dual-model contamination probe has a capability confound - the within-model placebo is promoted to primary; dual-model becomes corroboration.
+4. Price/return source named; point-in-time-correct (survivorship-safe) universe snapshot required.
+5. GATE "sane capacity" reconciled with 3.6 (capacity is conditional on the universe decision).
+6. Hype-veto baseline must be causal/trailing-only when reconstructed historically.
+
 ---
 
 ## Context
@@ -24,13 +32,14 @@ This spec is the execution design. It does not itself implement anything; the ne
 | D8 apscheduler | CONFIRMED absent from both `requirements.txt` and `pyproject.toml` dependencies. |
 | Phase 1 README | CONFIRMED one line (`# Velites`). |
 | CI Python | Pinned 3.11. |
-| **Watchlist scope** | **CONFIRMED: no watchlist filter in the resolution->signal path.** `GraphEngine.resolve_text` (`graph_engine.py:140`) matches the full company-alias set + the entire `product_map` (cloud, AI models, cybersecurity, consumer electronics - beyond the 11 semis). `main.py:151` takes `primary = max(entities, key=confidence)` and emits on `primary.ticker` with no watchlist gate. Configured `watchlist_path` (`config.py:29`) is defined but unreferenced. The pipeline can emit off-watchlist signals today; the plan's "11-name universe" is not what the pipeline produces. |
+| **Watchlist scope** | **CONFIRMED: no watchlist filter in the resolution->signal path.** `GraphEngine.resolve_text` (`graph_engine.py:140`) matches the full company-alias set + the entire `product_map` (cloud, AI models, cybersecurity, consumer electronics - beyond the 11 semis). `main.py:151` takes `primary = max(entities, key=confidence)` and emits on `primary.ticker` with no watchlist gate. Configured `watchlist_path` (`config.py:29`) is defined but unreferenced. The pipeline can emit off-watchlist signals today; the plan's "11-name universe" is not what the pipeline produces. **This defines the universe for all universe-dependent Phase-3 steps - see decision 3.U.** |
+| **Historical ArXiv** | **CONFIRMED: the ArXiv fetcher is recent-polling-only.** `arxiv_fetcher.py:88-94` builds `...&max_results={max_results}&sortBy=submittedDate&sortOrder=descending` with no `submittedDate:[start TO end]` range and no `start=` pagination; L92 caps at `max_results` (default 100); L121-122 filters client-side `if updated < cutoff_date: continue`. It physically cannot reach papers older than the most recent ~100 per category. **A historical ArXiv harvester does not exist and is on the critical path for the backtest - see 3.P.** |
 
 ---
 
 ## Execution approach
 
-**Chosen: sequential, gate-respecting.** Mirror the plan's critical path - Phases 0 and 1 in parallel (cheap, independent) -> Phase 2 -> **Phase 3 gate** -> 4/5/6 on GO. Within Phase 3, run the cheapest kill-checks first (resolution density, price-only benchmark) before the contamination probe, and all of those before the expensive corpus build, so the most likely STOP reasons surface for the least effort.
+**Chosen: sequential, gate-respecting.** Mirror the plan's critical path - Phases 0 and 1 in parallel (cheap, independent) -> Phase 2 -> **Phase 3 gate** -> 4/5/6 on GO. Within Phase 3, run the cheapest kill-checks first (resolution density, universe decision, price-only benchmark) before the contamination probe, and before the expensive historical-data build, so the most likely STOP reasons surface for the least effort.
 
 Rejected alternatives:
 - **Defect-batched** (land all D2-D9 first ignoring phase boundaries): faster to CI-green but tangles Phase-0 CI fixes with Phase-1 docs and loses the phase narrative.
@@ -41,7 +50,7 @@ Rejected alternatives:
 - One branch + PR per phase; atomic commits (one logical unit each) per repo convention.
 - **Phase 0's `ruff format` commit lands first; all other branches rebase onto it** to avoid reformat churn across parallel work. Phase 1 (parallel) rebases onto the format commit, not raw `main`.
 - No pushing without explicit user approval (house rule).
-- Phase 3 research artifacts live under `docs/` (or a research dir), NOT shipped to `main` as product code - with one exception: the **grade cache (3.3) is ship-quality infra and lands in `main`** behind the module structure.
+- Phase 3 research artifacts live under `docs/` (or a research dir), NOT shipped to `main` as product code - with two exceptions that are ship-quality infra and land in `main` behind the module structure: the **historical data harvesters (3.P)** and the **grade cache (3.3)**.
 - Environment: `fintech` conda env (verified to carry the deps).
 
 ---
@@ -68,7 +77,7 @@ Branch `phase-1-docs` (parallel to Phase 0; rebased onto the format commit).
 2. Populate `README.md`: thesis, DAG diagram, run modes, link to the resumption plan.
 3. Verify (do not assume) the rewritten `CLAUDE.md` reflects the new run modes + ops scripts post-`7b4205c`.
 4. Commit the resumption plan to `docs/planning/20260602_velites_resumption_plan.md`.
-5. **Surface the watchlist-scope finding** (from Verified Current State) as a documented decision item for Phase 3.0: is off-watchlist signal emission intended, or is the watchlist filter a missing gate?
+5. Record the watchlist-scope finding here, but note the *decision* is made at **3.U** (it is universe-defining, not a doc cleanup) and may require a pipeline code change.
 
 **Acceptance:** a cold reader can state the thesis, data flow, and run commands from README + CLAUDE.md.
 
@@ -86,67 +95,92 @@ Branch `phase-2-integration`.
 
 ---
 
-## Phase 3 - Signal validation study (GATE: STOP / PIVOT / GO) (L-XL)
+## Phase 3 - Signal validation study (GATE: STOP / PIVOT / GO) (multiple-XL)
 
-Branch `phase-3-validation`. Research artifacts under `docs/` except the grade cache (3.3), which is ship-quality and lands in `main`.
+Branch `phase-3-validation`. Research artifacts under `docs/` except the historical harvesters (3.P) and the grade cache (3.3), which are ship-quality and land in `main`.
 
-**Ordering principle: cheapest kill-checks first.** Two checks that need no grading and (3.0) no API spend precede even the contamination probe, because they can kill the project for the least effort.
+**Effort note:** the plan's L-XL tag was light. Once the three point-in-time (PIT) data sources are counted - historical ArXiv (hard, unbuilt), historical Tiingo news (medium), split/dividend-adjusted PIT prices (easier but survivorship-sensitive) - this is **multiple-XL**.
 
-### 3.0 Resolution-density check (NEW - first; zero API spend; can STOP)
-Run `GraphEngine.resolve_text` over a historical ArXiv sample. Measure:
+**Ordering principle: cheapest kill-checks first.** Checks that need no historical harvester precede the build; the build (3.P) gates every historical-era step (3.2 onward).
+
+### 3.0 Resolution-density check (FIRST; zero API spend; recent papers; can STOP)
+Run `GraphEngine.resolve_text` over a **recent** ArXiv sample (recent so it needs no historical harvester yet). Measure:
 - **Resolution fraction** - what share of abstracts resolve to any ticker. ArXiv abstracts describe methods ("a diffusion transformer for..."), not products/tickers, so resolution may fire too rarely (signal too sparse to validate) or too loosely (generic terms -> noise).
 - **Semantic soundness** - spot-check that resolutions are real, not coincidental substring hits.
-- Measured against the **full KG entity set**, not just the 11 semis (per the watchlist-scope finding).
-- Report the watchlist scope decision: intended off-watchlist emission, or a missing filter.
+- Measured against the **full KG entity set** (per the watchlist-scope finding), with a breakdown of on- vs off-watchlist resolutions.
 
-**Kill condition:** if density is too sparse or too noisy to support validation, STOP or redirect to Phase 5 KG work before any grading.
+**Kill condition:** if density is too sparse or too noisy to support validation, STOP or redirect to Phase 5 KG work before any grading or data build.
 
-### 3.1 Price-only benchmark bar (early; pure price data; no corpus)
-Establish the bar the signal must clear, using only price data:
-- Buy-and-hold the universe (sector beta).
-- Plain cross-sectional momentum on the same universe.
+### 3.U Universe decision (settle the watchlist fork; defines the universe for 3.1/3.5/3.6/3.8)
+The verified finding is that the pipeline emits off-watchlist today. This is **universe-defining**, so it must be settled before any universe-dependent step. Informed by 3.0's on/off-watchlist breakdown, choose explicitly:
+- **(A) Add the watchlist filter** - restrict emission to the 11-name semi watchlist (mega/large-cap; capacity a non-issue). Pipeline code change (wire `watchlist_path`).
+- **(B) Accept broad emission** - the universe is the full resolved set (includes cloud/cyber/consumer names, some small/mid-cap). Then **capacity is a live Phase-3 concern (3.6), not a deferred Phase-5 one**, and the survivorship/PIT-universe requirement (3.P) widens.
 
-In this period plain semi momentum is likely already deflated-Sharpe-positive, which reframes the question to "does innovation-lag add **residual** alpha on top of that." (Signal-vs-baseline *attribution* is deferred to 3.5, since it needs the signal.)
+"Validate on 11 semis" and "validate on a broad, partly-unknown resolved set" are two different studies. The chosen universe `U` is referenced by 3.1, 3.5, 3.6, 3.8 below.
 
-### 3.2 Lookahead contamination probe (dual-model cutoff differential)
-The "contemporaneously-graded holdout" is not executable - Velites was not running historically, so no contemporaneous grades exist. Clean instantiation:
-- Grade the same historical papers with (i) a **current frontier model** (knows how the tech/ticker played out) and (ii) a model whose **training cutoff predates each paper** (cannot know).
-- The **gap in their forward-return predictiveness is the contamination magnitude.**
+### 3.1 Price-only benchmark bar (needs historical prices only; no harvester, no corpus)
+Establish the bar the signal must clear on universe `U`, using only price data:
+- Buy-and-hold `U` (sector beta).
+- Plain cross-sectional momentum on `U`.
 
-**Named dependency:** an accessible old-cutoff model. **Fallback if none exists:** a weaker placebo - test whether scores "predict" returns for papers published *after* the move - or default to forward validation on priors.
+**Price source (named): split/dividend-adjusted historical prices via Alpaca SIP (preferred) or yfinance (fallback);** require a **PIT-correct universe snapshot** so delisted/acquired names are present (otherwise survivorship bias re-enters through the data layer - see 3.8). In this period plain semi momentum is likely already deflated-Sharpe-positive, reframing the question to "does innovation-lag add **residual** alpha on top of that." (Signal-vs-baseline *attribution* is deferred to 3.5, since it needs the signal.)
 
-**Forward-validation feasibility (power calculation) - part of this step, not deferred:** the signal is low-frequency (a few resolved papers/week). Given expected signals/week and a hypothesized per-signal effect, compute how long a forward period must run to reach significance. **An ~18-month answer is itself a decision-relevant finding (potential STOP), not an implementation detail.** Forward validation is not a free fallback.
+### 3.P Historical data acquisition (UNBUILT ENGINEERING; ship-quality -> main; GATES 3.2 and 3.3)
+This is real, previously-unbudgeted engineering on the critical path:
+- **Historical ArXiv harvester (the hard one):** a paginated (`start=`), date-ranged (`submittedDate:[start TO end]`), rate-limited (ArXiv asks ~3s between calls; results capped per query) harvester. The current fetcher (`arxiv_fetcher.py:88-94`) is recent-100-only and cannot do this. Build as a new fetcher mode that can land in `main`.
+- **Historical Tiingo news (tractable):** `fetch_from_tiingo` already accepts `startDate`; this is a pagination/querying job. Filter on availability time (`publishedDate`/`crawlDate`), not a backfilled timestamp (PIT correctness - OQ-1).
+- **Prices:** per 3.1 - named source, PIT-correct, survivorship-safe universe.
+
+**Note:** 3.0 (recent sample) and 3.1 (prices only) do not need this. Everything from 3.2 onward does.
+
+### 3.2 Lookahead contamination probe (placebo PRIMARY; dual-model CORROBORATION)
+A 2026-trained model grading a 2023 paper already knows how the tech/ticker played out, inflating historical innovation scores. Two tests, ordered by robustness:
+
+- **PRIMARY - within-model placebo (no capability confound):** with a single (current) model, test whether the innovation score "predicts" forward returns for papers published *after* the price move, where forward causality is impossible. Predictive power there can only be leakage, so it measures contamination *within one model* and avoids the capability confound.
+- **CORROBORATION - dual-model cutoff differential:** grade the same papers with (i) a current frontier model and (ii) a model whose training cutoff predates each paper; compare forward-return predictiveness. **Caveat (stated):** the old-cutoff model is also *less capable*, so a weaker correlation confounds lack-of-future-knowledge (wanted) with worse grading (capability). Use only to corroborate the placebo, not as the sole measure. **Named dependency:** an accessible old-cutoff model; if none exists, rely on the placebo alone.
+
+**Forward-validation feasibility (power calculation) - part of this step:** the signal is low-frequency (a few resolved papers/week on `U`). Given expected signals/week and a hypothesized per-signal effect, compute how long a forward period must run to reach significance. **An ~18-month answer is itself a decision-relevant finding (potential STOP); forward validation is not a free fallback.**
+
+Run 3.2 on a **small historical slice** (cheaper than the full corpus) so the contamination verdict precedes the full corpus build.
 
 **Branch on the probe:**
-- Small gap -> historical backtest is valid for the full signal.
-- Large gap -> the innovation score is gated by a forward paper-trading period (feasibility per the power calc); historical replay is used only for the less-contaminated parts (threshold/cost/portfolio sensitivity).
+- Small leakage -> historical backtest is valid for the full signal.
+- Large leakage -> the innovation score is gated by a forward paper-trading period (feasibility per the power calc); historical replay is used only for the less-contaminated parts (threshold/cost/portfolio sensitivity).
 
-### 3.3 Grade cache (SHIP-QUALITY -> main) + historical corpus build
-- **Grade cache:** persist `InnovationScore` + `SentimentScore` keyed by `(paper_id, model, prompt_version)`, so threshold replay reads cached grades and costs nothing per sweep. Build it to land in `main` behind the module structure (on a GO it caches grades live for reproducibility and to avoid re-grading). This is the precondition that makes the sweep affordable.
-- **Historical corpus:** ArXiv submission timestamp = causal; point-in-time Tiingo news (filter on availability time `publishedDate`/`crawlDate`, guard publication-vs-ingestion leakage - OQ-1); forward returns at 1d/5d/20d on the resolved universe; persisted via `save_enriched.py` format.
+### 3.3 Grade cache (ship-quality -> main) + full historical corpus build
+- **Grade cache:** persist `InnovationScore` + `SentimentScore` keyed by `(paper_id, model, prompt_version)`, so threshold replay reads cached grades and costs nothing per sweep. Lands in `main` behind the module structure (on a GO it caches grades live for reproducibility / no re-grading). Precondition that makes the sweep affordable.
+- **Full corpus:** ArXiv submission timestamp = causal (via 3.P harvester); PIT Tiingo news; forward returns at 1d/5d/20d on `U`; persisted via `save_enriched.py` format.
+- **Causal hype baseline (PIT):** the >3 sigma news-volume veto must be computed against a **trailing-only** rolling distribution when reconstructed historically. A centered or full-sample window leaks future news into the baseline. Reconstruct the hype baseline causally.
 
 ### 3.4 Threshold sweep wrapped in a proper protocol
 Use `replay_signals.py` for the sweep, but wrap it:
 - **Walk-forward + CPCV** with purge/embargo over the news/price overlap.
 - **Embargo pinned numerically: >= max label horizon + news-availability lag.** With overlapping 20-day forward labels, **embargo >= 20d + lag**, stated explicitly so it cannot be under-embargoed (adjacent samples share outcome windows and leak otherwise).
 - **Deflated / probabilistic Sharpe to pay for the search. Trial count N = the FULL researcher DoF**, not just the threshold grid: thresholds x horizons (1/5/20d) x universe definition x confluence-logic variants x model choice. Scoping N to the threshold sweep under-counts trials, under-deflates, and overstates significance (the Lopez de Prado failure mode).
+- Re-confirm the hype baseline is causal/trailing within each fold (per 3.3).
 
 ### 3.5 Residual attribution (needs the signal)
-Attribute returns to market + sector + momentum (+ size, given MU/INTC dispersion) and report **residual alpha, not raw return**, against the 3.1 bar and a shuffled-timestamp / shuffled-paper null. Direct echo of the Homeguard finding that plain momentum beat the regime overlay: plain sector exposure may beat the innovation signal.
+Attribute returns on `U` to market + sector + momentum (+ size, given dispersion in `U`) and report **residual alpha, not raw return**, against the 3.1 bar and a shuffled-timestamp / shuffled-paper null. Direct echo of the Homeguard finding that plain momentum beat the regime overlay: plain sector exposure may beat the innovation signal.
 
-### 3.6-3.8 Supporting checks
-- **3.6 Cost model + capacity:** empirical spreads (not heuristic tiers); the 11-name primary universe is mega/large-cap so capacity is a non-issue here (OQ-3) - capacity concern attaches to small/mid-cap KG suppliers at Phase 5.
-- **3.7 Threshold-stability map** (0.7 / -0.5 / 3 sigma): plateau vs cherry-pick.
-- **3.8 Survivorship check** on the universe (semi delistings / M&A).
+### 3.6 Cost model + capacity (capacity criticality depends on 3.U)
+Empirical spreads (not heuristic tiers). **Capacity criticality is conditional on the universe decision:**
+- If 3.U = (A) 11 mega/large-caps: capacity is a non-issue (hundreds of millions to billions $/day).
+- If 3.U = (B) broad emission: small/mid-cap names (e.g. PLAB ~$1.5B, UCTT ~$2.5B) make **capacity a live gate criterion now**, not a deferred Phase-5 question.
+
+### 3.7 Threshold-stability map (0.7 / -0.5 / 3 sigma)
+Plateau vs cherry-pick.
+
+### 3.8 Survivorship check (on the PIT universe)
+Semi (and broader, if 3.U=B) delistings / M&A. Relies on the **PIT-correct universe snapshot** from 3.P/3.1 so survivorship is not silently reintroduced by a present-day price pull.
 
 ### GATE decision
-**GO** requires: passing 3.0 (adequate resolution density); residual alpha *after* factor/null attribution; a credible answer to the lookahead stance; deflated-Sharpe-positive under full-DoF N; cost-survivable; sane capacity. -> Phases 4-6.
+**GO** requires: passing 3.0 (adequate resolution density); a settled universe (3.U); residual alpha *after* factor/null attribution; a credible lookahead stance (placebo-primary verdict); deflated-Sharpe-positive under full-DoF N; cost-survivable; **and capacity-survivable on the settled universe `U`** (a live criterion if 3.U=B, automatically satisfied if 3.U=A). -> Phases 4-6.
 **PIVOT** (real but mis-specified): re-spec, re-test.
-**STOP** (no edge survives attribution + costs, OR density too sparse, OR forward-validation horizon infeasible): archive as well-built infra.
+**STOP** (no edge survives attribution + costs, OR density too sparse, OR forward-validation horizon infeasible, OR capacity insufficient on a broad `U`): archive as well-built infra.
 
-**Standing decision:** a contaminated backtest is not allowed to manufacture a GO. If lookahead is severe, the honest gate is a forward paper-trading period (feasibility permitting), not a historical backtest.
+**Standing decision:** a contaminated backtest is not allowed to manufacture a GO. If the placebo shows severe leakage, the honest gate is a forward paper-trading period (feasibility permitting), not a historical backtest.
 
-**Acceptance:** a written validation report covering resolution density, the benchmark bar, the lookahead stance + power calc, attribution, and the GO/PIVOT/STOP call with evidence.
+**Acceptance:** a written validation report covering resolution density, the universe decision, the benchmark bar, the lookahead stance (placebo + corroboration) + power calc, attribution, capacity on `U`, and the GO/PIVOT/STOP call with evidence.
 
 ---
 
@@ -162,7 +196,7 @@ Planned at task-level detail per the scope decision, but a STOP archives them an
 ### Phase 5 - Knowledge-graph expansion (L)
 - Implement highest-value generation paths from `KNOWLEDGE_GRAPH_PLAN_v1_2.md` (RSS -> EDGAR) beyond the semi seed.
 - KG-coverage tests; version the graph; regenerate `watchlist.json`.
-- Capacity concern (OQ-3) arrives here with small/mid-cap suppliers (e.g. PLAB, UCTT).
+- If 3.U=A, the capacity concern (OQ-3) arrives here with small/mid-cap suppliers; if 3.U=B it was already handled at 3.6.
 - Re-run a Phase-3 slice on the expanded universe before trusting it.
 
 ### Phase 6 - Homeguard integration and productionization (M-L)
@@ -184,13 +218,17 @@ Phase 0 (format-first) --+
 Phase 1 ----------------+
    (0 & 1 parallel, S-effort; 1 rebases onto 0's format commit)
 
-Phase 3 internal order (cheap-first):
-  3.0 density -> 3.1 benchmark bar -> 3.2 lookahead probe+power calc
-  -> 3.3 grade cache + corpus -> 3.4 sweep (CPCV, full-DoF DSR) -> 3.5 residual attribution
-  -> 3.6 cost / 3.7 stability / 3.8 survivorship -> report -> GATE
+Phase 3 internal order (cheap-first; 3.P gates the historical era):
+  3.0 density (recent) -> 3.U universe decision -> 3.1 price-only benchmark
+  -> 3.P historical data build (ArXiv harvester [hard], Tiingo news, PIT prices)  [GATES below]
+  -> 3.2 lookahead probe (placebo primary + dual-model corroboration) + power calc  [small slice]
+  -> 3.3 grade cache + full corpus (causal hype baseline)
+  -> 3.4 sweep (CPCV embargo >=20d+lag, full-DoF DSR)
+  -> 3.5 residual attribution -> 3.6 cost/capacity -> 3.7 stability -> 3.8 survivorship
+  -> report -> GATE
 ```
 
-The two cheapest checks (3.0 density, 3.1 benchmark) precede even the contamination probe, because they can kill the project for the least effort. The grade cache is the precondition that makes the sweep affordable.
+The two cheapest checks (3.0 density, 3.1 benchmark) and the universe decision precede the data build; the ArXiv harvester (3.P) is the gating prerequisite for everything historical and is the main reason Phase 3 is multiple-XL.
 
 ---
 
@@ -201,18 +239,22 @@ The two cheapest checks (3.0 density, 3.1 benchmark) precede even the contaminat
 | 0 | 4 CI jobs green on clean checkout; `run_scheduled` imports in fresh venv |
 | 1 | Cold-reader test passes from README + CLAUDE.md |
 | 2 | `pytest tests/integration` green, zero live calls, no unexplained skips |
-| 3 | Written validation report with the GO/PIVOT/STOP call + evidence |
+| 3 | Written validation report with the GO/PIVOT/STOP call + evidence (density, universe, lookahead, attribution, capacity) |
 | 4-6 | Per-phase acceptance (conditional on GO) |
 
 ---
 
 ## Risks / contingencies (named explicitly)
 
-1. **Resolution density too low/noisy (3.0)** - cheapest and earliest STOP; redirect to Phase 5 KG work. The pipeline's lack of a watchlist filter means resolution targets a broader entity set than assumed; density must be measured against reality.
-2. **Lookahead contamination invalidates the backtest premise (3.2)** - a feature, not a failure; plan routes to forward validation. But forward validation's horizon may itself be infeasible (low-frequency signal) - the power calc can turn the fallback into a STOP.
-3. **Sector beta dominates (3.1/3.5)** - the 11-name semi universe over the largest semi bull run will look brilliant for reasons unrelated to the thesis; attribution to *residual* alpha (not raw return) is non-negotiable.
-4. **Under-deflated significance (3.4)** - if DSR N omits horizon/universe/logic/model DoF, the gate lies in the project's favor; N must be the full search cardinality.
-5. **Old-cutoff model unavailable (3.2)** - named dependency; fallback is a weaker placebo or forward-on-priors.
+1. **Resolution density too low/noisy (3.0)** - cheapest and earliest STOP; redirect to Phase 5 KG work. Density is measured against the full resolved entity set, not the assumed 11 semis.
+2. **Universe fork unresolved (3.U)** - leaving it open silently changes what 3.1/3.5/3.6/3.8 even study; must be settled before those steps, and it flips whether capacity is a live gate criterion.
+3. **Historical ArXiv harvester (3.P)** - unbudgeted, on the critical path, ArXiv-rate-limited; the single biggest reason Phase 3 is multiple-XL. Without it, 3.2/3.3 cannot run.
+4. **Lookahead contamination invalidates the backtest premise (3.2)** - a feature, not a failure; routes to forward validation. The placebo (within-model, post-move) is primary because the dual-model differential confounds future-knowledge with capability. Forward validation's horizon may itself be infeasible (low-frequency signal) - the power calc can turn the fallback into a STOP.
+5. **Sector beta dominates (3.1/3.5)** - the semi universe over the largest semi bull run will look brilliant for reasons unrelated to the thesis; attribution to *residual* alpha (not raw return) is non-negotiable.
+6. **Survivorship via the data layer (3.1/3.8)** - a naive present-day price pull omits delisted/acquired names; require a PIT-correct universe snapshot and a named, adjusted price source.
+7. **Under-deflated significance (3.4)** - if DSR N omits horizon/universe/logic/model DoF, the gate lies in the project's favor; N must be the full search cardinality.
+8. **Non-causal hype baseline (3.3/3.4)** - the >3 sigma veto must use a trailing-only rolling window historically; a centered/full-sample window leaks future news.
+9. **Old-cutoff model unavailable (3.2)** - named dependency for corroboration only; the placebo stands alone without it.
 
 ---
 
