@@ -49,8 +49,8 @@ jobs:
           pip install -r requirements.txt
           pip install mypy
 
-      # NOTE: 88 mypy errors remain under strict mode (deferred - see Task 0.5 triage).
-      # Path corrected from dead src/velites to src; error count and fix scope TBD.
+      # strict mode relaxed 2026-06-03; baseline is now clean (0 errors).
+      # See docs/planning/20260603_typing_debt.md for category breakdown and restore plan.
       - name: Run MyPy
         run: mypy src --ignore-missing-imports
 

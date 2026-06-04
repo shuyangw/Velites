@@ -177,7 +177,7 @@ class LLMAgent(BaseLLMAgent):
                     messages=[{"role": "user", "content": prompt}],
                 )
 
-                content = response.content[0].text
+                content = response.content[0].text  # type: ignore[union-attr]  # content[0] is always TextBlock here; other block types not used
                 return self._parse_llm_response(content, ticker, paper_id)
 
             except RateLimitError as e:

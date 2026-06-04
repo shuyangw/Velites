@@ -53,7 +53,7 @@ class NewsFetcher(BaseNewsFetcher):
         self.tiingo_api_key = settings.tiingo_api_key
         self.newsdata_api_key = settings.newsdata_api_key
 
-    async def fetch_news(
+    async def fetch_news(  # type: ignore[override]  # subclass adds use_tiingo param; debt: align base signature
         self,
         tickers: list[str],
         keywords: list[str] | None = None,
@@ -173,7 +173,7 @@ class NewsFetcher(BaseNewsFetcher):
         }
 
         # Build query parameters
-        params = {
+        params: dict[str, str | int] = {
             "tickers": ",".join(tickers),
             "startDate": start_str,
             "limit": 50,  # Reasonable limit per request

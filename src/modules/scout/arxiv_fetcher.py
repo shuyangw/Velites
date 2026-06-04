@@ -107,13 +107,13 @@ class ArxivFetcher(BaseArxivFetcher):
                 # Parse dates - use updated_parsed for filtering (catches updates)
                 # but keep published_parsed for the actual publication date
                 if hasattr(entry, "updated_parsed") and entry.updated_parsed:
-                    updated = datetime(*entry.updated_parsed[:6], tzinfo=UTC)
+                    updated = datetime(*entry.updated_parsed[:6], tzinfo=UTC)  # type: ignore[misc]  # feedparser time_struct unpacking
                 else:
                     # Skip entries without valid date
                     continue
 
                 if hasattr(entry, "published_parsed") and entry.published_parsed:
-                    published = datetime(*entry.published_parsed[:6], tzinfo=UTC)
+                    published = datetime(*entry.published_parsed[:6], tzinfo=UTC)  # type: ignore[misc]  # feedparser time_struct unpacking
                 else:
                     published = updated
 

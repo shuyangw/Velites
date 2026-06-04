@@ -7,6 +7,7 @@ Acts as a veto mechanism when sentiment is deeply negative.
 
 import math
 from datetime import UTC, datetime
+from typing import Any
 
 from config import settings
 from logging_config import get_logger
@@ -31,8 +32,8 @@ class SentimentEngine:
     def __init__(self) -> None:
         self.model_name = settings.sentiment_model
         self.veto_threshold = settings.sentiment_veto_threshold
-        self._model = None
-        self._tokenizer = None
+        self._model: Any = None  # set by load_model(); type: ignore deferred to usage sites
+        self._tokenizer: Any = None  # set by load_model(); type: ignore deferred to usage sites
 
     def load_model(self) -> None:
         """Load the FinBERT model."""

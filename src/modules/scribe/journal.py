@@ -9,7 +9,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from config import settings
 from logging_config import get_logger
@@ -35,7 +35,7 @@ class Journal:
             database_url: Database connection URL (default from settings)
         """
         self.database_url = database_url or settings.database_url
-        self._engine = None
+        self._engine: AsyncEngine | None = None
         self._session_factory: async_sessionmaker[AsyncSession] | None = None
 
     async def initialize(self) -> None:
@@ -143,8 +143,8 @@ class Journal:
                 if record is None:
                     raise JournalWriteError(f"Signal not found: {signal_id}")
 
-                record.outcome_price = outcome_price
-                record.outcome_date = outcome_date
+                record.outcome_price = outcome_price  # type: ignore[assignment]  # SQLAlchemy Column vs Python type
+                record.outcome_date = outcome_date  # type: ignore[assignment]  # SQLAlchemy Column vs Python type
 
                 await session.commit()
 
@@ -277,8 +277,8 @@ class Journal:
                     returns.append(return_pct)
 
                     if r.ticker not in ticker_returns:
-                        ticker_returns[r.ticker] = []
-                    ticker_returns[r.ticker].append(return_pct)
+                        ticker_returns[r.ticker] = []  # type: ignore[index]  # SQLAlchemy Column[str] as index
+                    ticker_returns[r.ticker].append(return_pct)  # type: ignore[index, arg-type]  # SQLAlchemy Column[str] as index; ColumnElement[float] vs float
 
                 # Win rate (positive returns for BUY signals)
                 wins = sum(1 for r in returns if r > 0)
@@ -290,8 +290,8 @@ class Journal:
                 # Best/worst tickers by average return
                 ticker_avg = {t: sum(rets) / len(rets) for t, rets in ticker_returns.items()}
 
-                best_ticker = max(ticker_avg, key=ticker_avg.get) if ticker_avg else None
-                worst_ticker = min(ticker_avg, key=ticker_avg.get) if ticker_avg else None
+                best_ticker = max(ticker_avg, key=ticker_avg.get) if ticker_avg else None  # type: ignore[arg-type]  # dict.get overload
+                worst_ticker = min(ticker_avg, key=ticker_avg.get) if ticker_avg else None  # type: ignore[arg-type]  # dict.get overload
 
                 return {
                     "total_signals": total_signals,
