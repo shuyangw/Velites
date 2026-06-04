@@ -6,6 +6,9 @@ structlog>=23.0
 # Async HTTP
 httpx>=0.24
 
+# Scheduling
+apscheduler>=3.10
+
 # Data fetching
 feedparser>=6.0
 beautifulsoup4>=4.12
