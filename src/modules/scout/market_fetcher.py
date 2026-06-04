@@ -5,9 +5,8 @@ Provides current market state to prevent trading into illiquidity.
 Sources: yfinance (Dev), Alpaca Data API (Prod).
 """
 
-import asyncio
 from abc import ABC, abstractmethod
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from config import settings
 from logging_config import get_logger
@@ -156,7 +155,7 @@ class MarketFetcher(BaseMarketFetcher):
             quote = quote_response[ticker]
 
             # Get 30-day bars for volume average
-            end_date = datetime.now(timezone.utc)
+            end_date = datetime.now(UTC)
             start_date = end_date - timedelta(days=30)
 
             bars_request = StockBarsRequest(
@@ -179,9 +178,15 @@ class MarketFetcher(BaseMarketFetcher):
             latest_bar = bars[-1]
 
             # Calculate spread percentage from bid/ask
-            bid_price = float(quote.bid_price) if quote.bid_price else float(latest_bar.close) * 0.999
-            ask_price = float(quote.ask_price) if quote.ask_price else float(latest_bar.close) * 1.001
-            mid_price = (bid_price + ask_price) / 2 if bid_price and ask_price else float(latest_bar.close)
+            bid_price = (
+                float(quote.bid_price) if quote.bid_price else float(latest_bar.close) * 0.999
+            )
+            ask_price = (
+                float(quote.ask_price) if quote.ask_price else float(latest_bar.close) * 1.001
+            )
+            mid_price = (
+                (bid_price + ask_price) / 2 if bid_price and ask_price else float(latest_bar.close)
+            )
             spread_pct = ((ask_price - bid_price) / mid_price) * 100 if mid_price > 0 else 0.1
 
             # Classify liquidity
@@ -205,9 +210,7 @@ class MarketFetcher(BaseMarketFetcher):
                 raise
             raise DataFetchError(f"Alpaca API error for {ticker}: {e}")
 
-    def _classify_liquidity(
-        self, volume_30d_avg: float, spread_pct: float
-    ) -> LiquidityStatus:
+    def _classify_liquidity(self, volume_30d_avg: float, spread_pct: float) -> LiquidityStatus:
         """Classify liquidity based on volume and spread."""
         if spread_pct > 2.0 or volume_30d_avg < 100_000:
             return LiquidityStatus.ILLIQUID

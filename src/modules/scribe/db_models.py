@@ -1,7 +1,5 @@
 """SQLAlchemy ORM models for Scribe module."""
 
-from datetime import datetime
-
 from sqlalchemy import Column, DateTime, Float, Index, String, Text
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase
@@ -37,9 +35,7 @@ class SignalRecord(Base):
     created_at = Column(DateTime, nullable=False, index=True)
 
     # Composite index for common queries
-    __table_args__ = (
-        Index("ix_signal_ticker_created", "ticker", "created_at"),
-    )
+    __table_args__ = (Index("ix_signal_ticker_created", "ticker", "created_at"),)
 
     def to_dict(self) -> dict:
         """Convert record to dictionary."""

@@ -102,12 +102,10 @@ class LLMAgent(BaseLLMAgent):
         else:
             raise LLMError(f"Unknown LLM provider: {self.provider}")
 
-    async def _call_openai(
-        self, prompt: str, ticker: str, paper_id: str
-    ) -> InnovationScore:
+    async def _call_openai(self, prompt: str, ticker: str, paper_id: str) -> InnovationScore:
         """Call OpenAI API with retry logic."""
         try:
-            from openai import AsyncOpenAI, RateLimitError, APIConnectionError
+            from openai import APIConnectionError, AsyncOpenAI, RateLimitError
         except ImportError:
             raise LLMError("openai package not installed. Run: pip install openai")
 
@@ -158,12 +156,10 @@ class LLMAgent(BaseLLMAgent):
 
         raise LLMError("OpenAI call failed unexpectedly")
 
-    async def _call_anthropic(
-        self, prompt: str, ticker: str, paper_id: str
-    ) -> InnovationScore:
+    async def _call_anthropic(self, prompt: str, ticker: str, paper_id: str) -> InnovationScore:
         """Call Anthropic API with retry logic."""
         try:
-            from anthropic import AsyncAnthropic, RateLimitError, APIConnectionError
+            from anthropic import APIConnectionError, AsyncAnthropic, RateLimitError
         except ImportError:
             raise LLMError("anthropic package not installed. Run: pip install anthropic")
 
@@ -215,9 +211,7 @@ class LLMAgent(BaseLLMAgent):
 
         raise LLMError("Anthropic call failed unexpectedly")
 
-    def _parse_llm_response(
-        self, content: str, ticker: str, paper_id: str
-    ) -> InnovationScore:
+    def _parse_llm_response(self, content: str, ticker: str, paper_id: str) -> InnovationScore:
         """
         Parse LLM response JSON into InnovationScore.
 
@@ -257,7 +251,9 @@ class LLMAgent(BaseLLMAgent):
             if score_match:
                 try:
                     score = float(score_match.group(1))
-                    reasoning = reasoning_match.group(1) if reasoning_match else "Extracted via regex"
+                    reasoning = (
+                        reasoning_match.group(1) if reasoning_match else "Extracted via regex"
+                    )
                     logger.debug(
                         "innovation_score_extracted_regex",
                         ticker=ticker,

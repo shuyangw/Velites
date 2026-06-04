@@ -2,15 +2,16 @@
 
 import asyncio
 import json
-import pytest
-from datetime import datetime, timedelta, timezone
+import tempfile
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
-import tempfile
+
+import pytest
 
 from modules.courier.dispatcher import Dispatcher
 from modules.courier.exceptions import DispatchError
-from modules.courier.models import AlphaSignal, SignalAction, OrderType
+from modules.courier.models import AlphaSignal, OrderType, SignalAction
 from modules.mapper.models import RiskFlag
 
 
@@ -29,7 +30,7 @@ class TestFormatPayload:
             limit_price=750.50,
             confidence=0.85,
             reasoning="ArXiv paper suggests moat expansion",
-            valid_until=datetime(2026, 1, 17, 10, 0, 0, tzinfo=timezone.utc),
+            valid_until=datetime(2026, 1, 17, 10, 0, 0, tzinfo=UTC),
             risk_flags=[RiskFlag.SMALL_CAP],
         )
 
@@ -102,7 +103,7 @@ class TestDispatchFile:
             ticker="NVDA",
             confidence=0.9,
             reasoning="Test signal",
-            valid_until=datetime.now(timezone.utc) + timedelta(hours=24),
+            valid_until=datetime.now(UTC) + timedelta(hours=24),
         )
 
     def test_dispatch_file_creates_json(self, sample_signal: AlphaSignal) -> None:
@@ -113,9 +114,7 @@ class TestDispatchFile:
             dispatcher.webhook_url = ""  # Force file dispatch
 
             payload = dispatcher.format_payload(sample_signal)
-            result = asyncio.get_event_loop().run_until_complete(
-                dispatcher._dispatch_file(payload)
-            )
+            result = asyncio.get_event_loop().run_until_complete(dispatcher._dispatch_file(payload))
 
             assert result is True
 
@@ -139,9 +138,7 @@ class TestDispatchFile:
             dispatcher.webhook_url = ""
 
             payload = dispatcher.format_payload(sample_signal)
-            result = asyncio.get_event_loop().run_until_complete(
-                dispatcher._dispatch_file(payload)
-            )
+            result = asyncio.get_event_loop().run_until_complete(dispatcher._dispatch_file(payload))
 
             assert result is True
             assert nested_dir.exists()
@@ -295,7 +292,7 @@ class TestDispatch:
             ticker="TSM",
             confidence=0.75,
             reasoning="Test dispatch",
-            valid_until=datetime.now(timezone.utc) + timedelta(hours=24),
+            valid_until=datetime.now(UTC) + timedelta(hours=24),
         )
 
     def test_dispatch_uses_webhook_when_configured(self, sample_signal: AlphaSignal) -> None:
@@ -313,9 +310,7 @@ class TestDispatch:
             mock_client.__aexit__.return_value = None
             mock_client_class.return_value = mock_client
 
-            result = asyncio.get_event_loop().run_until_complete(
-                dispatcher.dispatch(sample_signal)
-            )
+            result = asyncio.get_event_loop().run_until_complete(dispatcher.dispatch(sample_signal))
 
             assert result is True
             mock_client.post.assert_called_once()
@@ -327,9 +322,7 @@ class TestDispatch:
             dispatcher.webhook_url = ""
             dispatcher.output_dir = Path(tmpdir)
 
-            result = asyncio.get_event_loop().run_until_complete(
-                dispatcher.dispatch(sample_signal)
-            )
+            result = asyncio.get_event_loop().run_until_complete(dispatcher.dispatch(sample_signal))
 
             assert result is True
 
@@ -350,7 +343,7 @@ class TestDispatchBatch:
                 ticker=ticker,
                 confidence=0.8,
                 reasoning="Batch test",
-                valid_until=datetime.now(timezone.utc) + timedelta(hours=24),
+                valid_until=datetime.now(UTC) + timedelta(hours=24),
             )
             for i, ticker in enumerate(["AAPL", "GOOGL", "MSFT"])
         ]
@@ -372,8 +365,6 @@ class TestDispatchBatch:
         """Test batch dispatch with empty list."""
         dispatcher = Dispatcher()
 
-        results = asyncio.get_event_loop().run_until_complete(
-            dispatcher.dispatch_batch([])
-        )
+        results = asyncio.get_event_loop().run_until_complete(dispatcher.dispatch_batch([]))
 
         assert results == {}

@@ -5,14 +5,14 @@ Combines innovation and sentiment scores with time-lag logic
 and hype filtering to produce final trading signals.
 """
 
-from datetime import datetime, timedelta, timezone
 import uuid
+from datetime import UTC, datetime, timedelta
 
 from config import settings
 from logging_config import get_logger
-from modules.mapper.models import RiskFlag
 from modules.analyst.models import InnovationScore, SentimentScore
 from modules.courier.models import AlphaSignal, SignalAction
+from modules.mapper.models import RiskFlag
 
 logger = get_logger(__name__)
 
@@ -47,7 +47,9 @@ class ConfluenceEngine:
             hype_threshold: Override for hype threshold
         """
         self.innovation_threshold = innovation_threshold or settings.confluence_innovation_threshold
-        self.sentiment_veto_threshold = sentiment_veto_threshold or settings.confluence_sentiment_veto_threshold
+        self.sentiment_veto_threshold = (
+            sentiment_veto_threshold or settings.confluence_sentiment_veto_threshold
+        )
         self.hype_threshold = hype_threshold or settings.confluence_hype_threshold
 
     def generate_signal(
@@ -192,7 +194,7 @@ class ConfluenceEngine:
             ticker=ticker,
             confidence=confidence,
             reasoning=reasoning,
-            valid_until=datetime.now(timezone.utc) + timedelta(hours=24),
+            valid_until=datetime.now(UTC) + timedelta(hours=24),
             risk_flags=risk_flags,
             source_paper_id=innovation.paper_id,
             innovation_score=innovation.score,

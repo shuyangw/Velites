@@ -1,13 +1,14 @@
 """Tests for Journal class."""
 
 import asyncio
-import pytest
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-from modules.scribe.journal import Journal
-from modules.scribe.exceptions import JournalWriteError
-from modules.scribe.db_models import SignalRecord
+import pytest
+
 from modules.courier.models import AlphaSignal, SignalAction
+from modules.scribe.db_models import SignalRecord
+from modules.scribe.exceptions import JournalWriteError
+from modules.scribe.journal import Journal
 
 
 class TestJournalInitialization:
@@ -70,7 +71,7 @@ class TestRecordSignal:
             ticker="NVDA",
             confidence=0.85,
             reasoning="Strong innovation score from ArXiv paper",
-            valid_until=datetime.now(timezone.utc) + timedelta(hours=24),
+            valid_until=datetime.now(UTC) + timedelta(hours=24),
             source_paper_id="arxiv_2401.12345",
         )
 
@@ -88,15 +89,13 @@ class TestRecordSignal:
         )
         assert signal_id == "velites_test_001"
 
-    def test_record_signal_persists_data(self, journal: Journal, sample_signal: AlphaSignal) -> None:
+    def test_record_signal_persists_data(
+        self, journal: Journal, sample_signal: AlphaSignal
+    ) -> None:
         """Test that recorded signal can be retrieved."""
-        asyncio.get_event_loop().run_until_complete(
-            journal.record_signal(sample_signal, 150.50)
-        )
+        asyncio.get_event_loop().run_until_complete(journal.record_signal(sample_signal, 150.50))
 
-        signals = asyncio.get_event_loop().run_until_complete(
-            journal.get_signals_for_backtest()
-        )
+        signals = asyncio.get_event_loop().run_until_complete(journal.get_signals_for_backtest())
 
         assert len(signals) == 1
         assert signals[0]["id"] == sample_signal.signal_id
@@ -105,13 +104,9 @@ class TestRecordSignal:
 
     def test_record_signal_all_fields(self, journal: Journal, sample_signal: AlphaSignal) -> None:
         """Test that all signal fields are stored correctly."""
-        asyncio.get_event_loop().run_until_complete(
-            journal.record_signal(sample_signal, 150.50)
-        )
+        asyncio.get_event_loop().run_until_complete(journal.record_signal(sample_signal, 150.50))
 
-        signals = asyncio.get_event_loop().run_until_complete(
-            journal.get_signals_for_backtest()
-        )
+        signals = asyncio.get_event_loop().run_until_complete(journal.get_signals_for_backtest())
 
         signal = signals[0]
         assert signal["ticker"] == "NVDA"
@@ -127,9 +122,7 @@ class TestRecordSignal:
         # Don't call initialize()
 
         with pytest.raises(JournalWriteError, match="not initialized"):
-            asyncio.get_event_loop().run_until_complete(
-                journal.record_signal(sample_signal, 100.0)
-            )
+            asyncio.get_event_loop().run_until_complete(journal.record_signal(sample_signal, 100.0))
 
 
 class TestUpdateOutcome:
@@ -147,27 +140,23 @@ class TestUpdateOutcome:
             ticker="AMD",
             confidence=0.75,
             reasoning="Test signal for outcome",
-            valid_until=datetime.now(timezone.utc) + timedelta(hours=24),
+            valid_until=datetime.now(UTC) + timedelta(hours=24),
         )
 
-        asyncio.get_event_loop().run_until_complete(
-            journal.record_signal(signal, 100.0)
-        )
+        asyncio.get_event_loop().run_until_complete(journal.record_signal(signal, 100.0))
 
         return journal, signal.signal_id
 
     def test_update_outcome_success(self, journal_with_signal: tuple[Journal, str]) -> None:
         """Test successful outcome update."""
         journal, signal_id = journal_with_signal
-        outcome_date = datetime.now(timezone.utc)
+        outcome_date = datetime.now(UTC)
 
         asyncio.get_event_loop().run_until_complete(
             journal.update_outcome(signal_id, 110.0, outcome_date)
         )
 
-        signals = asyncio.get_event_loop().run_until_complete(
-            journal.get_signals_for_backtest()
-        )
+        signals = asyncio.get_event_loop().run_until_complete(journal.get_signals_for_backtest())
 
         assert signals[0]["outcome_price"] == 110.0
         assert signals[0]["outcome_date"] is not None
@@ -175,7 +164,7 @@ class TestUpdateOutcome:
     def test_update_outcome_overwrite(self, journal_with_signal: tuple[Journal, str]) -> None:
         """Test that outcome can be updated multiple times."""
         journal, signal_id = journal_with_signal
-        outcome_date = datetime.now(timezone.utc)
+        outcome_date = datetime.now(UTC)
 
         # First update
         asyncio.get_event_loop().run_until_complete(
@@ -187,9 +176,7 @@ class TestUpdateOutcome:
             journal.update_outcome(signal_id, 120.0, outcome_date)
         )
 
-        signals = asyncio.get_event_loop().run_until_complete(
-            journal.get_signals_for_backtest()
-        )
+        signals = asyncio.get_event_loop().run_until_complete(journal.get_signals_for_backtest())
 
         assert signals[0]["outcome_price"] == 120.0
 
@@ -199,7 +186,7 @@ class TestUpdateOutcome:
 
         with pytest.raises(JournalWriteError, match="not found"):
             asyncio.get_event_loop().run_until_complete(
-                journal.update_outcome("nonexistent_id", 100.0, datetime.now(timezone.utc))
+                journal.update_outcome("nonexistent_id", 100.0, datetime.now(UTC))
             )
 
     def test_update_outcome_not_initialized(self) -> None:
@@ -208,7 +195,7 @@ class TestUpdateOutcome:
 
         with pytest.raises(JournalWriteError, match="not initialized"):
             asyncio.get_event_loop().run_until_complete(
-                journal.update_outcome("any_id", 100.0, datetime.now(timezone.utc))
+                journal.update_outcome("any_id", 100.0, datetime.now(UTC))
             )
 
 
@@ -229,15 +216,13 @@ class TestGetSignalsForBacktest:
                 ticker=ticker,
                 confidence=0.8,
                 reasoning=f"Test signal {i}",
-                valid_until=datetime.now(timezone.utc) + timedelta(hours=24),
+                valid_until=datetime.now(UTC) + timedelta(hours=24),
             )
             for i, ticker in enumerate(["NVDA", "AMD", "INTC", "NVDA"])
         ]
 
         for signal in signals:
-            asyncio.get_event_loop().run_until_complete(
-                journal.record_signal(signal, 100.0)
-            )
+            asyncio.get_event_loop().run_until_complete(journal.record_signal(signal, 100.0))
 
         return journal
 
@@ -259,8 +244,8 @@ class TestGetSignalsForBacktest:
     def test_get_signals_filter_by_date(self, journal_with_signals: Journal) -> None:
         """Test filtering by date range."""
         # All signals created now, so filter should include all
-        start = datetime.now(timezone.utc) - timedelta(hours=1)
-        end = datetime.now(timezone.utc) + timedelta(hours=1)
+        start = datetime.now(UTC) - timedelta(hours=1)
+        end = datetime.now(UTC) + timedelta(hours=1)
 
         signals = asyncio.get_event_loop().run_until_complete(
             journal_with_signals.get_signals_for_backtest(start_date=start, end_date=end)
@@ -277,9 +262,7 @@ class TestGetSignalsForBacktest:
     def test_get_signals_not_initialized(self) -> None:
         """Test that get_signals returns empty list if not initialized."""
         journal = Journal(database_url="sqlite+aiosqlite:///:memory:")
-        signals = asyncio.get_event_loop().run_until_complete(
-            journal.get_signals_for_backtest()
-        )
+        signals = asyncio.get_event_loop().run_until_complete(journal.get_signals_for_backtest())
         assert signals == []
 
 
@@ -295,9 +278,9 @@ class TestGetSignalStats:
         # Create signals with known outcomes
         test_data = [
             ("NVDA", 100.0, 120.0),  # 20% gain
-            ("AMD", 100.0, 90.0),    # 10% loss
+            ("AMD", 100.0, 90.0),  # 10% loss
             ("INTC", 100.0, 110.0),  # 10% gain
-            ("TSM", 100.0, 105.0),   # 5% gain
+            ("TSM", 100.0, 105.0),  # 5% gain
         ]
 
         for i, (ticker, market_price, outcome_price) in enumerate(test_data):
@@ -307,15 +290,13 @@ class TestGetSignalStats:
                 ticker=ticker,
                 confidence=0.8,
                 reasoning="Test signal",
-                valid_until=datetime.now(timezone.utc) + timedelta(hours=24),
+                valid_until=datetime.now(UTC) + timedelta(hours=24),
             )
 
-            asyncio.get_event_loop().run_until_complete(
-                journal.record_signal(signal, market_price)
-            )
+            asyncio.get_event_loop().run_until_complete(journal.record_signal(signal, market_price))
 
             asyncio.get_event_loop().run_until_complete(
-                journal.update_outcome(signal.signal_id, outcome_price, datetime.now(timezone.utc))
+                journal.update_outcome(signal.signal_id, outcome_price, datetime.now(UTC))
             )
 
         return journal
@@ -353,9 +334,7 @@ class TestGetSignalStats:
         journal = Journal(database_url="sqlite+aiosqlite:///:memory:")
         asyncio.get_event_loop().run_until_complete(journal.initialize())
 
-        stats = asyncio.get_event_loop().run_until_complete(
-            journal.get_signal_stats()
-        )
+        stats = asyncio.get_event_loop().run_until_complete(journal.get_signal_stats())
 
         assert stats["total_signals"] == 0
         assert stats["signals_with_outcome"] == 0
@@ -373,16 +352,12 @@ class TestGetSignalStats:
             ticker="NVDA",
             confidence=0.8,
             reasoning="Test",
-            valid_until=datetime.now(timezone.utc) + timedelta(hours=24),
+            valid_until=datetime.now(UTC) + timedelta(hours=24),
         )
 
-        asyncio.get_event_loop().run_until_complete(
-            journal.record_signal(signal, 100.0)
-        )
+        asyncio.get_event_loop().run_until_complete(journal.record_signal(signal, 100.0))
 
-        stats = asyncio.get_event_loop().run_until_complete(
-            journal.get_signal_stats()
-        )
+        stats = asyncio.get_event_loop().run_until_complete(journal.get_signal_stats())
 
         assert stats["total_signals"] == 1
         assert stats["signals_with_outcome"] == 0
@@ -392,9 +367,7 @@ class TestGetSignalStats:
         """Test that get_stats returns defaults if not initialized."""
         journal = Journal(database_url="sqlite+aiosqlite:///:memory:")
 
-        stats = asyncio.get_event_loop().run_until_complete(
-            journal.get_signal_stats()
-        )
+        stats = asyncio.get_event_loop().run_until_complete(journal.get_signal_stats())
 
         assert stats["total_signals"] == 0
 
@@ -404,7 +377,7 @@ class TestSignalRecordModel:
 
     def test_to_dict(self) -> None:
         """Test SignalRecord.to_dict() method."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         record = SignalRecord(
             id="test_id",
             ticker="NVDA",

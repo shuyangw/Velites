@@ -4,14 +4,14 @@ from pathlib import Path
 
 import pytest
 
-from modules.mapper.graph_engine import GraphEngine
-from modules.mapper.supply_chain import (
-    SupplyChainNavigator,
-    TOOL_MAKER_ROLES,
-    BOTTLENECK_MARKET_SHARE_THRESHOLD,
-)
 from modules.mapper.exceptions import GraphTraversalError
+from modules.mapper.graph_engine import GraphEngine
 from modules.mapper.models import DependencyMap
+from modules.mapper.supply_chain import (
+    BOTTLENECK_MARKET_SHARE_THRESHOLD,
+    TOOL_MAKER_ROLES,
+    SupplyChainNavigator,
+)
 
 
 class TestSupplyChainNavigator:
@@ -67,40 +67,30 @@ class TestSupplyChainNavigator:
         downstream = navigator.get_downstream("NVDA", max_depth=1)
         assert "MSFT" in downstream
 
-    def test_get_dependencies_returns_dependency_map(
-        self, navigator: SupplyChainNavigator
-    ) -> None:
+    def test_get_dependencies_returns_dependency_map(self, navigator: SupplyChainNavigator) -> None:
         """Test that get_dependencies returns a DependencyMap."""
         deps = navigator.get_dependencies("NVDA")
         assert isinstance(deps, DependencyMap)
         assert deps.primary_ticker == "NVDA"
 
-    def test_get_dependencies_includes_suppliers(
-        self, navigator: SupplyChainNavigator
-    ) -> None:
+    def test_get_dependencies_includes_suppliers(self, navigator: SupplyChainNavigator) -> None:
         """Test that dependency map includes tier1 suppliers."""
         deps = navigator.get_dependencies("NVDA")
         assert "TSM" in deps.tier1_suppliers
         assert "SKHIY" in deps.tier1_suppliers
 
-    def test_get_dependencies_includes_customers(
-        self, navigator: SupplyChainNavigator
-    ) -> None:
+    def test_get_dependencies_includes_customers(self, navigator: SupplyChainNavigator) -> None:
         """Test that dependency map includes customers."""
         deps = navigator.get_dependencies("NVDA")
         assert "MSFT" in deps.customers
 
-    def test_get_dependencies_includes_competitors(
-        self, navigator: SupplyChainNavigator
-    ) -> None:
+    def test_get_dependencies_includes_competitors(self, navigator: SupplyChainNavigator) -> None:
         """Test that dependency map includes competitors."""
         deps = navigator.get_dependencies("NVDA")
         assert "AMD" in deps.competitors
         assert "INTC" in deps.competitors
 
-    def test_get_dependencies_unknown_ticker_raises(
-        self, navigator: SupplyChainNavigator
-    ) -> None:
+    def test_get_dependencies_unknown_ticker_raises(self, navigator: SupplyChainNavigator) -> None:
         """Test that unknown ticker raises GraphTraversalError."""
         with pytest.raises(GraphTraversalError, match="not found"):
             navigator.get_dependencies("UNKNOWN_TICKER")
@@ -116,15 +106,11 @@ class TestParseMarketShare:
         engine.load_graph()
         return SupplyChainNavigator(engine)
 
-    def test_parse_range_returns_upper_bound(
-        self, navigator: SupplyChainNavigator
-    ) -> None:
+    def test_parse_range_returns_upper_bound(self, navigator: SupplyChainNavigator) -> None:
         """Test that range format returns upper bound."""
         assert navigator._parse_market_share("57-62%") == 62.0
 
-    def test_parse_approximate_returns_value(
-        self, navigator: SupplyChainNavigator
-    ) -> None:
+    def test_parse_approximate_returns_value(self, navigator: SupplyChainNavigator) -> None:
         """Test that approximate format returns the value."""
         assert navigator._parse_market_share("~99%") == 99.0
 
@@ -136,9 +122,7 @@ class TestParseMarketShare:
         """Test percentage embedded in note text."""
         assert navigator._parse_market_share("99% market share in ABF") == 99.0
 
-    def test_parse_empty_string_returns_none(
-        self, navigator: SupplyChainNavigator
-    ) -> None:
+    def test_parse_empty_string_returns_none(self, navigator: SupplyChainNavigator) -> None:
         """Test that empty string returns None."""
         assert navigator._parse_market_share("") is None
 
@@ -146,9 +130,7 @@ class TestParseMarketShare:
         """Test that None returns None."""
         assert navigator._parse_market_share(None) is None
 
-    def test_parse_no_percentage_returns_none(
-        self, navigator: SupplyChainNavigator
-    ) -> None:
+    def test_parse_no_percentage_returns_none(self, navigator: SupplyChainNavigator) -> None:
         """Test that string without percentage returns None."""
         assert navigator._parse_market_share("Primary HBM supplier") is None
 
@@ -221,9 +203,7 @@ class TestSupplyChainNavigatorWithRealData:
         assert "SKHIY" in upstream
         assert "SNPS" in upstream
 
-    def test_get_upstream_depth_2_includes_tier2(
-        self, navigator: SupplyChainNavigator
-    ) -> None:
+    def test_get_upstream_depth_2_includes_tier2(self, navigator: SupplyChainNavigator) -> None:
         """Test upstream at depth 2 includes tier2 suppliers."""
         upstream = navigator.get_upstream("NVDA", max_depth=2)
         # Tier1: TSM is a supplier
@@ -257,25 +237,19 @@ class TestSupplyChainNavigatorWithRealData:
         # Should be empty or minimal
         assert isinstance(downstream, list)
 
-    def test_dependencies_include_tool_makers(
-        self, navigator: SupplyChainNavigator
-    ) -> None:
+    def test_dependencies_include_tool_makers(self, navigator: SupplyChainNavigator) -> None:
         """Test that dependency map includes tool_makers field."""
         deps = navigator.get_dependencies("NVDA")
         assert len(deps.tool_makers) > 0
         assert "SNPS" in deps.tool_makers
 
-    def test_dependencies_include_bottlenecks(
-        self, navigator: SupplyChainNavigator
-    ) -> None:
+    def test_dependencies_include_bottlenecks(self, navigator: SupplyChainNavigator) -> None:
         """Test that dependency map includes critical_bottlenecks."""
         deps = navigator.get_dependencies("NVDA")
         assert len(deps.critical_bottlenecks) > 0
         assert "TSM" in deps.critical_bottlenecks
 
-    def test_dependencies_include_tier2_suppliers(
-        self, navigator: SupplyChainNavigator
-    ) -> None:
+    def test_dependencies_include_tier2_suppliers(self, navigator: SupplyChainNavigator) -> None:
         """Test that dependency map includes tier2 suppliers."""
         deps = navigator.get_dependencies("NVDA")
         # Tier2 should include TSM's suppliers

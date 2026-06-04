@@ -3,8 +3,8 @@
 import pytest
 
 from modules.mapper.graph_engine import GraphEngine
-from modules.mapper.ticker_normalizer import TickerNormalizer
 from modules.mapper.models import RiskFlag
+from modules.mapper.ticker_normalizer import TickerNormalizer
 
 
 class TestTickerNormalizerWithRealData:

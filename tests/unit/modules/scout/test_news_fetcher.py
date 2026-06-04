@@ -1,11 +1,12 @@
 """Tests for News Fetcher."""
 
-import pytest
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
-from modules.scout.news_fetcher import NewsFetcher
+import pytest
+
 from modules.scout.exceptions import DataFetchError
 from modules.scout.models import NewsObject
+from modules.scout.news_fetcher import NewsFetcher
 
 
 class TestNewsFetcher:
@@ -31,7 +32,7 @@ class TestNewsFetcher:
     def test_fetch_from_tiingo_missing_key(self) -> None:
         """Test that Tiingo fetcher raises DataFetchError if key not configured."""
         import asyncio
-        from datetime import timezone
+
         import config
 
         fetcher = NewsFetcher()
@@ -44,7 +45,7 @@ class TestNewsFetcher:
         try:
             with pytest.raises(DataFetchError, match="not configured"):
                 asyncio.new_event_loop().run_until_complete(
-                    fetcher.fetch_from_tiingo(["NVDA"], datetime.now(timezone.utc))
+                    fetcher.fetch_from_tiingo(["NVDA"], datetime.now(UTC))
                 )
         finally:
             config.settings.tiingo_api_key = original_key

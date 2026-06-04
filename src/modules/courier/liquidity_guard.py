@@ -6,9 +6,8 @@ Hard rejection of un-tradeable assets before dispatch.
 
 from config import settings
 from logging_config import get_logger
-from modules.courier.exceptions import LiquidityCheckError
-from modules.scout.models import MarketState
 from modules.courier.models import AlphaSignal, SignalAction
+from modules.scout.models import MarketState
 
 logger = get_logger(__name__)
 
@@ -47,9 +46,7 @@ class LiquidityGuard:
         # Check volume
         volume_usd = market_state.volume_30d_avg * market_state.price
         if volume_usd < self.min_volume_usd:
-            failures.append(
-                f"Volume ${volume_usd:,.0f} below min ${self.min_volume_usd:,.0f}"
-            )
+            failures.append(f"Volume ${volume_usd:,.0f} below min ${self.min_volume_usd:,.0f}")
 
         passes = len(failures) == 0
 
@@ -62,9 +59,7 @@ class LiquidityGuard:
 
         return passes, failures
 
-    def validate_signal(
-        self, signal: AlphaSignal, market_state: MarketState
-    ) -> AlphaSignal:
+    def validate_signal(self, signal: AlphaSignal, market_state: MarketState) -> AlphaSignal:
         """
         Validate a signal against liquidity requirements.
 

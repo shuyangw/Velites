@@ -1,17 +1,17 @@
 """Tests for Sentiment Engine."""
 
-import math
 import asyncio
-import pytest
-from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock, patch
+import math
+from datetime import UTC, datetime, timedelta
+from unittest.mock import MagicMock
 
-from modules.analyst.sentiment_engine import (
-    SentimentEngine,
-    RECENCY_DECAY_FACTOR,
-)
-from modules.analyst.exceptions import SentimentError
+import pytest
+
 from modules.analyst.models import SentimentScore
+from modules.analyst.sentiment_engine import (
+    RECENCY_DECAY_FACTOR,
+    SentimentEngine,
+)
 from modules.scout.models import NewsObject
 
 
@@ -143,7 +143,7 @@ class TestAnalyzeSentiment:
     @pytest.fixture
     def sample_news_items(self) -> list[NewsObject]:
         """Create sample news items for testing."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return [
             NewsObject(
                 id="news_1",
@@ -171,9 +171,7 @@ class TestAnalyzeSentiment:
         """Test neutral score for empty news list."""
         engine = SentimentEngine()
 
-        result = asyncio.get_event_loop().run_until_complete(
-            engine.analyze_sentiment([], "NVDA")
-        )
+        result = asyncio.get_event_loop().run_until_complete(engine.analyze_sentiment([], "NVDA"))
 
         assert isinstance(result, SentimentScore)
         assert result.score == 0.0
@@ -181,9 +179,7 @@ class TestAnalyzeSentiment:
         assert result.is_veto is False
         assert result.ticker == "NVDA"
 
-    def test_analyze_sentiment_with_mocked_model(
-        self, sample_news_items: list[NewsObject]
-    ) -> None:
+    def test_analyze_sentiment_with_mocked_model(self, sample_news_items: list[NewsObject]) -> None:
         """Test sentiment analysis with mocked _analyze_single_headline."""
         engine = SentimentEngine()
 
@@ -213,7 +209,7 @@ class TestAnalyzeSentiment:
         engine = SentimentEngine()
         engine.veto_threshold = -0.6
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         negative_news = [
             NewsObject(
                 id="news_1",
@@ -293,7 +289,7 @@ class TestIntegration:
         engine = SentimentEngine()
         engine.load_model()
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         news = [
             NewsObject(
                 id="news_1",
@@ -307,9 +303,7 @@ class TestIntegration:
             ),
         ]
 
-        result = asyncio.get_event_loop().run_until_complete(
-            engine.analyze_sentiment(news, "TEST")
-        )
+        result = asyncio.get_event_loop().run_until_complete(engine.analyze_sentiment(news, "TEST"))
 
         # Should be positive sentiment
         assert result.score > 0

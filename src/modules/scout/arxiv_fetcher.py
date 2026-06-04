@@ -6,7 +6,7 @@ in relevant categories (cs.AI, cs.LG, cs.AR, cs.CV).
 """
 
 from abc import ABC, abstractmethod
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from config import settings
 from logging_config import get_logger
@@ -71,7 +71,7 @@ class ArxivFetcher(BaseArxivFetcher):
         """
         categories = categories or self.categories
         lookback_hours = lookback_hours or self.lookback_hours
-        cutoff_date = datetime.now(timezone.utc) - timedelta(hours=lookback_hours)
+        cutoff_date = datetime.now(UTC) - timedelta(hours=lookback_hours)
 
         logger.info(
             "fetching_arxiv_papers",
@@ -107,13 +107,13 @@ class ArxivFetcher(BaseArxivFetcher):
                 # Parse dates - use updated_parsed for filtering (catches updates)
                 # but keep published_parsed for the actual publication date
                 if hasattr(entry, "updated_parsed") and entry.updated_parsed:
-                    updated = datetime(*entry.updated_parsed[:6], tzinfo=timezone.utc)
+                    updated = datetime(*entry.updated_parsed[:6], tzinfo=UTC)
                 else:
                     # Skip entries without valid date
                     continue
 
                 if hasattr(entry, "published_parsed") and entry.published_parsed:
-                    published = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
+                    published = datetime(*entry.published_parsed[:6], tzinfo=UTC)
                 else:
                     published = updated
 
@@ -130,12 +130,16 @@ class ArxivFetcher(BaseArxivFetcher):
                 categories_list = [tag.term for tag in entry.tags] if hasattr(entry, "tags") else []
 
                 # Extract authors
-                authors = [author.name for author in entry.authors] if hasattr(entry, "authors") else []
+                authors = (
+                    [author.name for author in entry.authors] if hasattr(entry, "authors") else []
+                )
 
                 paper = PaperObject(
                     id=f"arxiv_{paper_id}",
                     title=entry.title.replace("\n", " ").strip(),
-                    abstract=entry.summary.replace("\n", " ").strip() if hasattr(entry, "summary") else "",
+                    abstract=entry.summary.replace("\n", " ").strip()
+                    if hasattr(entry, "summary")
+                    else "",
                     authors=authors,
                     url=entry.link,
                     published_date=published,

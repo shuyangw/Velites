@@ -5,7 +5,7 @@ Maintains a database of all signals for backtesting and analysis.
 Schema: (Date, SignalID, Ticker, Input_Paper, LLM_Reasoning, Market_Price_At_Signal, Outcome_7d)
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import select
@@ -103,7 +103,7 @@ class Journal:
                     reasoning=signal.reasoning,
                     source_paper_id=signal.source_paper_id,
                     market_price=market_price,
-                    created_at=datetime.now(timezone.utc),
+                    created_at=datetime.now(UTC),
                 )
 
                 session.add(record)
@@ -231,13 +231,11 @@ class Journal:
             }
 
         try:
-            cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+            cutoff_date = datetime.now(UTC) - timedelta(days=days)
 
             async with self._session_factory() as session:
                 # Get all signals in date range
-                query = select(SignalRecord).where(
-                    SignalRecord.created_at >= cutoff_date
-                )
+                query = select(SignalRecord).where(SignalRecord.created_at >= cutoff_date)
                 result = await session.execute(query)
                 records = result.scalars().all()
 
@@ -254,8 +252,7 @@ class Journal:
 
                 # Filter to signals with outcomes
                 with_outcome = [
-                    r for r in records
-                    if r.outcome_price is not None and r.market_price > 0
+                    r for r in records if r.outcome_price is not None and r.market_price > 0
                 ]
                 signals_with_outcome = len(with_outcome)
 
@@ -291,10 +288,7 @@ class Journal:
                 avg_return_pct = sum(returns) / len(returns) if returns else 0.0
 
                 # Best/worst tickers by average return
-                ticker_avg = {
-                    t: sum(rets) / len(rets)
-                    for t, rets in ticker_returns.items()
-                }
+                ticker_avg = {t: sum(rets) / len(rets) for t, rets in ticker_returns.items()}
 
                 best_ticker = max(ticker_avg, key=ticker_avg.get) if ticker_avg else None
                 worst_ticker = min(ticker_avg, key=ticker_avg.get) if ticker_avg else None

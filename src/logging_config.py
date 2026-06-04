@@ -30,7 +30,8 @@ def configure_logging() -> None:
 
     # Configure structlog to pass events to stdlib for handler-specific rendering
     structlog.configure(
-        processors=shared_processors + [
+        processors=shared_processors
+        + [
             # Prepare event_dict for ProcessorFormatter
             structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
         ],

@@ -11,7 +11,6 @@ import re
 from collections import deque
 from typing import TYPE_CHECKING
 
-from config import settings
 from logging_config import get_logger
 from modules.mapper.exceptions import GraphTraversalError
 from modules.mapper.models import DependencyMap
@@ -151,7 +150,10 @@ class SupplyChainNavigator:
             # Also check the note field for market share info
             note = supplier_info.get("note", "")
             note_market_share = self._parse_market_share(note)
-            if note_market_share is not None and note_market_share >= BOTTLENECK_MARKET_SHARE_THRESHOLD:
+            if (
+                note_market_share is not None
+                and note_market_share >= BOTTLENECK_MARKET_SHARE_THRESHOLD
+            ):
                 is_bottleneck = True
 
             if is_bottleneck:

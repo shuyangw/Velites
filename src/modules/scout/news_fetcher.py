@@ -7,7 +7,7 @@ Sources: Tiingo, NewsData.io, and niche RSS feeds.
 
 import re
 from abc import ABC, abstractmethod
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import httpx
 
@@ -79,7 +79,7 @@ class NewsFetcher(BaseNewsFetcher):
             DataFetchError: If fetching fails
         """
         keywords = keywords or self.SUPPLY_CHAIN_KEYWORDS
-        cutoff_date = datetime.now(timezone.utc) - timedelta(hours=lookback_hours)
+        cutoff_date = datetime.now(UTC) - timedelta(hours=lookback_hours)
 
         logger.info(
             "fetching_news",
@@ -108,7 +108,7 @@ class NewsFetcher(BaseNewsFetcher):
         for n in all_news:
             news_time = n.timestamp
             if news_time.tzinfo is None:
-                news_time = news_time.replace(tzinfo=timezone.utc)
+                news_time = news_time.replace(tzinfo=UTC)
             if news_time >= cutoff_date:
                 filtered_news.append(n)
 
@@ -145,9 +145,7 @@ class NewsFetcher(BaseNewsFetcher):
 
         return filtered_news
 
-    async def fetch_from_tiingo(
-        self, tickers: list[str], start_date: datetime
-    ) -> list[NewsObject]:
+    async def fetch_from_tiingo(self, tickers: list[str], start_date: datetime) -> list[NewsObject]:
         """
         Fetch news from Tiingo API.
 
@@ -212,9 +210,9 @@ class NewsFetcher(BaseNewsFetcher):
                         try:
                             timestamp = datetime.fromisoformat(pub_date_str.replace("Z", "+00:00"))
                         except ValueError:
-                            timestamp = datetime.now(timezone.utc)
+                            timestamp = datetime.now(UTC)
                     else:
-                        timestamp = datetime.now(timezone.utc)
+                        timestamp = datetime.now(UTC)
 
                     # Extract tickers mentioned in the article
                     article_tickers = article.get("tickers", [])
@@ -227,7 +225,11 @@ class NewsFetcher(BaseNewsFetcher):
 
                     # Generate unique ID
                     article_id = article.get("id", "")
-                    news_id = f"tiingo_{article_id}" if article_id else f"tiingo_{hash(article.get('url', '')) & 0xFFFFFFFF:08x}"
+                    news_id = (
+                        f"tiingo_{article_id}"
+                        if article_id
+                        else f"tiingo_{hash(article.get('url', '')) & 0xFFFFFFFF:08x}"
+                    )
 
                     news = NewsObject(
                         id=news_id,
@@ -330,5 +332,7 @@ class NewsFetcher(BaseNewsFetcher):
                 logger.warning("rss_fetch_failed", feed=feed_url, error=str(e))
                 continue
 
-        logger.info("rss_feeds_fetched", total_items=len(news_items), feeds_processed=len(feeds_to_fetch))
+        logger.info(
+            "rss_feeds_fetched", total_items=len(news_items), feeds_processed=len(feeds_to_fetch)
+        )
         return news_items

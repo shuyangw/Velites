@@ -1,7 +1,5 @@
 """Tests for Confluence Engine."""
 
-import pytest
-
 from modules.analyst.confluence import ConfluenceEngine
 from modules.analyst.models import InnovationScore, SentimentScore
 from modules.courier.models import SignalAction

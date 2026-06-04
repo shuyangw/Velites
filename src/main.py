@@ -14,17 +14,17 @@ import argparse
 import asyncio
 import signal
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from config import settings
 from logging_config import configure_logging, get_logger
+from modules.analyst import ConfluenceEngine, LLMAgent, SentimentEngine
+from modules.courier import Dispatcher, LiquidityGuard
 from modules.courier.models import AlphaSignal, SignalAction
+from modules.mapper import GraphEngine, SupplyChainNavigator, TickerNormalizer
 
 # Module imports
-from modules.scout import ArxivFetcher, NewsFetcher, MarketFetcher
-from modules.mapper import GraphEngine, SupplyChainNavigator, TickerNormalizer
-from modules.analyst import LLMAgent, SentimentEngine, ConfluenceEngine
-from modules.courier import Dispatcher, LiquidityGuard
+from modules.scout import ArxivFetcher, MarketFetcher, NewsFetcher
 from modules.scribe import Journal
 
 logger = get_logger(__name__)
@@ -84,7 +84,7 @@ class VelitesOrchestrator:
         Returns:
             List of generated signals
         """
-        run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        run_id = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         logger.info("starting_pipeline_run", run_id=run_id)
 
         signals: list[AlphaSignal] = []
@@ -114,7 +114,11 @@ class VelitesOrchestrator:
                 run_id=run_id,
                 signals_generated=len(signals),
                 signals_dispatched=[
-                    {"ticker": s.ticker, "action": s.action.value, "confidence": round(s.confidence, 2)}
+                    {
+                        "ticker": s.ticker,
+                        "action": s.action.value,
+                        "confidence": round(s.confidence, 2),
+                    }
                     for s in signals
                 ],
             )
@@ -182,12 +186,14 @@ class VelitesOrchestrator:
                 )
                 dependencies = None
 
-            enriched.append({
-                **item,
-                "primary_ticker": primary.ticker,
-                "entities": entities,
-                "dependencies": dependencies,
-            })
+            enriched.append(
+                {
+                    **item,
+                    "primary_ticker": primary.ticker,
+                    "entities": entities,
+                    "dependencies": dependencies,
+                }
+            )
 
         logger.info(
             "step_entity_resolution_complete",
@@ -311,25 +317,25 @@ class VelitesOrchestrator:
         logger.info("step_dispatch_start", signal_count=len(signals))
 
         validated_signals = []
-        for signal in signals:
+        for sig in signals:
             # Normalize ticker
-            tradeable = self.ticker_normalizer.normalize(signal.ticker)
-            signal.ticker = tradeable.symbol
-            signal.venue = tradeable.venue
-            signal.risk_flags.extend(tradeable.risk_flags)
+            tradeable = self.ticker_normalizer.normalize(sig.ticker)
+            sig.ticker = tradeable.symbol
+            sig.venue = tradeable.venue
+            sig.risk_flags.extend(tradeable.risk_flags)
 
             # Check liquidity
-            market_state = await self.market_fetcher.fetch_market_state(signal.ticker)
-            signal = self.liquidity_guard.validate_signal(signal, market_state)
+            market_state = await self.market_fetcher.fetch_market_state(sig.ticker)
+            sig = self.liquidity_guard.validate_signal(sig, market_state)
 
-            if signal.action != SignalAction.NO_GO:
+            if sig.action != SignalAction.NO_GO:
                 # Dispatch to Homeguard
-                await self.dispatcher.dispatch(signal)
+                await self.dispatcher.dispatch(sig)
 
                 # Record to journal
-                await self.journal.record_signal(signal, market_state.price)
+                await self.journal.record_signal(sig, market_state.price)
 
-                validated_signals.append(signal)
+                validated_signals.append(sig)
 
         logger.info("step_dispatch_complete", dispatched_count=len(validated_signals))
         return validated_signals

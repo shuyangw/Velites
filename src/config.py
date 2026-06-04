@@ -29,9 +29,7 @@ class Settings(BaseSettings):
     watchlist_path: str = "data/watchlist.json"
 
     # Scout - ArXiv
-    arxiv_categories: list[str] = Field(
-        default=["cs.AI", "cs.LG", "cs.AR", "cs.CV"]
-    )
+    arxiv_categories: list[str] = Field(default=["cs.AI", "cs.LG", "cs.AR", "cs.CV"])
     arxiv_max_results: int = 100
     arxiv_lookback_hours: int = 72  # 72h accounts for weekends + batch publishing
 

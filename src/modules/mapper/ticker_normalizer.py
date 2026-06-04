@@ -12,7 +12,6 @@ Based on the v1.2 knowledge graph structure:
 
 from __future__ import annotations
 
-import re
 from typing import TYPE_CHECKING
 
 from logging_config import get_logger
@@ -29,7 +28,20 @@ NON_US_SUFFIXES = [".KS", ".T", ".TW", ".DE", ".HK", ".L", ".PA", ".F"]
 # Known US exchanges
 US_EXCHANGES = {
     "NYSE": ["BRK", "JPM", "JNJ", "V", "PG", "UNH", "HD", "MA"],
-    "NASDAQ": ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "AMD", "INTC", "QCOM", "AVGO", "ASML"],
+    "NASDAQ": [
+        "AAPL",
+        "MSFT",
+        "GOOGL",
+        "AMZN",
+        "NVDA",
+        "META",
+        "TSLA",
+        "AMD",
+        "INTC",
+        "QCOM",
+        "AVGO",
+        "ASML",
+    ],
     "OTC": ["SSNLF", "NTDOY", "SKHIY", "TOELY", "PCRFY", "AJINY", "MDTKF", "HNHPF"],
 }
 
@@ -186,7 +198,11 @@ class TickerNormalizer:
         if us_adr and us_adr in self._track_only:
             risk_flags.append(RiskFlag.LOW_LIQUIDITY)
 
-        venue = "OTC" if liquidity in ("low", "very_low") else self._get_venue_for_ticker(us_adr or original)
+        venue = (
+            "OTC"
+            if liquidity in ("low", "very_low")
+            else self._get_venue_for_ticker(us_adr or original)
+        )
 
         return TradeableTicker(
             symbol=us_adr or original,

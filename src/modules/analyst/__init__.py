@@ -9,8 +9,8 @@ Components:
 - Confluence Engine (confluence): Final decision matrix
 """
 
+from modules.analyst.confluence import ConfluenceEngine
 from modules.analyst.llm_agent import LLMAgent
 from modules.analyst.sentiment_engine import SentimentEngine
-from modules.analyst.confluence import ConfluenceEngine
 
 __all__ = ["LLMAgent", "SentimentEngine", "ConfluenceEngine"]

@@ -148,9 +148,7 @@ class Dispatcher:
                             status_code=response.status_code,
                             attempt=attempt + 1,
                         )
-                        last_error = DispatchError(
-                            f"Webhook returned {response.status_code}"
-                        )
+                        last_error = DispatchError(f"Webhook returned {response.status_code}")
 
             except httpx.TimeoutException as e:
                 logger.warning(

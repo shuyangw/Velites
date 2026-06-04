@@ -1,11 +1,11 @@
 """Tests for LLM Agent."""
 
 import asyncio
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 
-from modules.analyst.llm_agent import LLMAgent, MAX_RETRIES
+import pytest
+
 from modules.analyst.exceptions import LLMError
+from modules.analyst.llm_agent import LLMAgent
 from modules.analyst.models import InnovationScore
 
 
@@ -164,7 +164,8 @@ class TestCallAnthropicMissingKey:
 
         # Temporarily clear the API key
         import config
-        original_key = getattr(config.settings, 'anthropic_api_key', None)
+
+        original_key = getattr(config.settings, "anthropic_api_key", None)
         config.settings.anthropic_api_key = None
 
         try:
@@ -184,15 +185,9 @@ class TestCallOpenAIMissingKey:
         """Test that missing API key or missing package raises LLMError."""
         agent = LLMAgent()
 
-        # Check if openai package is installed
-        try:
-            import openai
-            openai_installed = True
-        except ImportError:
-            openai_installed = False
-
         import config
-        original_key = getattr(config.settings, 'openai_api_key', None)
+
+        original_key = getattr(config.settings, "openai_api_key", None)
         config.settings.openai_api_key = None
 
         try:

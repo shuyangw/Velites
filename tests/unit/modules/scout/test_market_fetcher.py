@@ -2,9 +2,9 @@
 
 import pytest
 
-from modules.scout.market_fetcher import MarketFetcher
 from modules.scout.exceptions import DataFetchError
-from modules.scout.models import LiquidityStatus, MarketState
+from modules.scout.market_fetcher import MarketFetcher
+from modules.scout.models import LiquidityStatus
 
 
 class TestMarketFetcher:
@@ -73,13 +73,12 @@ class TestMarketFetcher:
         fetcher.provider = "unknown"
 
         with pytest.raises(DataFetchError, match="Unknown market data provider"):
-            asyncio.new_event_loop().run_until_complete(
-                fetcher.fetch_market_state("NVDA")
-            )
+            asyncio.new_event_loop().run_until_complete(fetcher.fetch_market_state("NVDA"))
 
     def test_fetch_from_alpaca_missing_keys(self) -> None:
         """Test that Alpaca fetcher raises DataFetchError if keys not configured."""
         import asyncio
+
         import config
 
         fetcher = MarketFetcher()
@@ -92,9 +91,7 @@ class TestMarketFetcher:
 
         try:
             with pytest.raises(DataFetchError, match="(not configured|alpaca-py)"):
-                asyncio.new_event_loop().run_until_complete(
-                    fetcher._fetch_from_alpaca("NVDA")
-                )
+                asyncio.new_event_loop().run_until_complete(fetcher._fetch_from_alpaca("NVDA"))
         finally:
             config.settings.alpaca_api_key = original_key
             config.settings.alpaca_secret_key = original_secret
@@ -106,6 +103,7 @@ class TestMarketFetcher:
         # Check if yfinance can be imported
         try:
             import yfinance  # noqa: F401
+
             pytest.skip("yfinance is installed, cannot test missing dependency")
         except ImportError:
             pass
@@ -113,9 +111,7 @@ class TestMarketFetcher:
         fetcher = MarketFetcher()
 
         with pytest.raises(DataFetchError, match="yfinance"):
-            asyncio.new_event_loop().run_until_complete(
-                fetcher._fetch_from_yfinance("NVDA")
-            )
+            asyncio.new_event_loop().run_until_complete(fetcher._fetch_from_yfinance("NVDA"))
 
     def test_fetch_batch_market_state_empty_list(self) -> None:
         """Test batch fetch with empty ticker list."""
@@ -123,9 +119,7 @@ class TestMarketFetcher:
 
         fetcher = MarketFetcher()
 
-        results = asyncio.new_event_loop().run_until_complete(
-            fetcher.fetch_batch_market_state([])
-        )
+        results = asyncio.new_event_loop().run_until_complete(fetcher.fetch_batch_market_state([]))
 
         assert results == {}
 

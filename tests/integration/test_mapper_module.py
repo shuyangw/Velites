@@ -7,9 +7,9 @@ to tradeable ticker normalization.
 import pytest
 
 from modules.mapper.graph_engine import GraphEngine
+from modules.mapper.models import EntityRole, RiskFlag
 from modules.mapper.supply_chain import SupplyChainNavigator
 from modules.mapper.ticker_normalizer import TickerNormalizer
-from modules.mapper.models import EntityRole, RiskFlag
 
 
 class TestMapperModuleE2E:
@@ -306,18 +306,14 @@ class TestMapperModuleEdgeCases:
         """Create a ticker normalizer."""
         return TickerNormalizer(graph_engine)
 
-    def test_leaf_node_has_empty_downstream(
-        self, navigator: SupplyChainNavigator
-    ) -> None:
+    def test_leaf_node_has_empty_downstream(self, navigator: SupplyChainNavigator) -> None:
         """Test that leaf nodes (end customers) have empty or minimal downstream."""
         # MSFT is primarily a customer, doesn't sell to chip companies
         downstream = navigator.get_downstream("MSFT", max_depth=1)
         # Should be empty or contain only software customers
         assert len(downstream) < 5  # Reasonable threshold
 
-    def test_normalize_unknown_non_us_ticker(
-        self, normalizer: TickerNormalizer
-    ) -> None:
+    def test_normalize_unknown_non_us_ticker(self, normalizer: TickerNormalizer) -> None:
         """Test normalization of unknown non-US ticker."""
         # Unknown Korean ticker without a mapping
         result = normalizer.normalize("999999.KS")
@@ -325,9 +321,7 @@ class TestMapperModuleEdgeCases:
         assert RiskFlag.LOW_LIQUIDITY in result.risk_flags
         assert result.venue == "UNKNOWN"
 
-    def test_normalize_unknown_us_ticker(
-        self, normalizer: TickerNormalizer
-    ) -> None:
+    def test_normalize_unknown_us_ticker(self, normalizer: TickerNormalizer) -> None:
         """Test normalization of unknown US ticker returns it unchanged."""
         # Unknown ticker without foreign suffix treated as US ticker
         result = normalizer.normalize("UNKNOWN123")
@@ -335,23 +329,17 @@ class TestMapperModuleEdgeCases:
         # US tickers without known issues are returned as-is
         assert result.venue == "NASDAQ"
 
-    def test_empty_text_resolution(
-        self, graph_engine: GraphEngine
-    ) -> None:
+    def test_empty_text_resolution(self, graph_engine: GraphEngine) -> None:
         """Test that empty text returns empty entities."""
         entities = graph_engine.resolve_text("")
         assert entities == []
 
-    def test_irrelevant_text_resolution(
-        self, graph_engine: GraphEngine
-    ) -> None:
+    def test_irrelevant_text_resolution(self, graph_engine: GraphEngine) -> None:
         """Test that irrelevant text returns empty entities."""
         entities = graph_engine.resolve_text("The weather is nice today")
         assert len(entities) == 0
 
-    def test_case_insensitive_resolution(
-        self, graph_engine: GraphEngine
-    ) -> None:
+    def test_case_insensitive_resolution(self, graph_engine: GraphEngine) -> None:
         """Test that text resolution is case insensitive."""
         lower = graph_engine.resolve_text("nvidia")
         upper = graph_engine.resolve_text("NVIDIA")
@@ -361,9 +349,7 @@ class TestMapperModuleEdgeCases:
 
         assert "NVDA" in lower_tickers or "NVDA" in upper_tickers
 
-    def test_normalizer_idempotent(
-        self, normalizer: TickerNormalizer
-    ) -> None:
+    def test_normalizer_idempotent(self, normalizer: TickerNormalizer) -> None:
         """Test that normalizing twice gives same result."""
         first = normalizer.normalize("NVDA")
         second = normalizer.normalize(first.symbol)

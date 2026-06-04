@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from modules.scout.models import PaperObject, NewsObject, LiquidityStatus, MarketState
-from modules.mapper.models import EntityNode, EntityRole
 from modules.analyst.models import InnovationScore, SentimentScore
+from modules.mapper.models import EntityNode, EntityRole
+from modules.scout.models import LiquidityStatus, MarketState, NewsObject, PaperObject
 
 
 @pytest.fixture
@@ -95,52 +95,34 @@ def sample_sentiment_score() -> SentimentScore:
 def knowledge_graph_path(tmp_path: Path) -> Path:
     """Create a temporary knowledge graph file with v1.2 structure."""
     graph_data = {
-        "metadata": {
-            "version": "1.2.0",
-            "description": "Test knowledge graph"
-        },
+        "metadata": {"version": "1.2.0", "description": "Test knowledge graph"},
         "product_map": {
             "semiconductors": {
                 "nvidia_ai_gpus": {
                     "H100": {"ticker": "NVDA", "role": "designer", "category": "ai_gpu"},
-                    "B100": {"ticker": "NVDA", "role": "designer", "category": "ai_gpu"}
+                    "B100": {"ticker": "NVDA", "role": "designer", "category": "ai_gpu"},
                 }
             }
         },
         "supply_chain": {
             "NVDA": {
                 "name": "NVIDIA Corporation",
-                "tier1_suppliers": {
-                    "TSM": {"role": "foundry"},
-                    "SKHIY": {"role": "memory"}
-                },
-                "tier1_customers": {
-                    "MSFT": {"products": ["H100"]}
-                },
-                "competitors": ["AMD", "INTC"]
+                "tier1_suppliers": {"TSM": {"role": "foundry"}, "SKHIY": {"role": "memory"}},
+                "tier1_customers": {"MSFT": {"products": ["H100"]}},
+                "competitors": ["AMD", "INTC"],
             }
         },
         "ticker_normalization": {
-            "mappings": {
-                "005930.KS": {"us_adr": "SSNLF", "us_liquidity": "low"}
-            },
-            "trading_flags": {
-                "tradeable_us": ["SSNLF"],
-                "track_only": ["MDTKF"]
-            }
+            "mappings": {"005930.KS": {"us_adr": "SSNLF", "us_liquidity": "low"}},
+            "trading_flags": {"tradeable_us": ["SSNLF"], "track_only": ["MDTKF"]},
         },
-        "aliases": {
-            "companies": {"nvidia": "NVDA", "tsmc": "TSM"},
-            "products": {"hopper": "H100"}
-        },
+        "aliases": {"companies": {"nvidia": "NVDA", "tsmc": "TSM"}, "products": {"hopper": "H100"}},
         "trading_signals": {
             "earnings_cascade": {
                 "description": "Test signals",
-                "patterns": [
-                    {"trigger": "NVDA earnings beat", "watch": ["TSM"]}
-                ]
+                "patterns": [{"trigger": "NVDA earnings beat", "watch": ["TSM"]}],
             }
-        }
+        },
     }
 
     graph_path = tmp_path / "knowledge_graph.json"

@@ -1,10 +1,8 @@
 """Tests for Liquidity Guard."""
 
-import pytest
-
 from modules.courier.liquidity_guard import LiquidityGuard
-from modules.scout.models import LiquidityStatus, MarketState
 from modules.courier.models import AlphaSignal, SignalAction
+from modules.scout.models import LiquidityStatus, MarketState
 
 
 class TestLiquidityGuard:
@@ -53,9 +51,7 @@ class TestLiquidityGuard:
         assert passes is False
         assert any("volume" in f.lower() for f in failures)
 
-    def test_validate_signal_converts_to_no_go(
-        self, sample_market_state: MarketState
-    ) -> None:
+    def test_validate_signal_converts_to_no_go(self, sample_market_state: MarketState) -> None:
         """Test that failing liquidity converts signal to NO_GO."""
         guard = LiquidityGuard()
 

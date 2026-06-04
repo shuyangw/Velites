@@ -11,7 +11,7 @@ Components:
 """
 
 from modules.scout.arxiv_fetcher import ArxivFetcher
-from modules.scout.news_fetcher import NewsFetcher
 from modules.scout.market_fetcher import MarketFetcher
+from modules.scout.news_fetcher import NewsFetcher
 
 __all__ = ["ArxivFetcher", "NewsFetcher", "MarketFetcher"]

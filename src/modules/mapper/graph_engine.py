@@ -12,7 +12,7 @@ from typing import Any
 
 from config import settings
 from logging_config import get_logger
-from modules.mapper.exceptions import EntityResolutionError, GraphTraversalError
+from modules.mapper.exceptions import GraphTraversalError
 from modules.mapper.models import EntityNode, EntityRole
 
 logger = get_logger(__name__)
@@ -105,14 +105,10 @@ class GraphEngine:
         aliases = self._graph_data.get("aliases", {})
 
         # Company aliases (nvidia -> NVDA)
-        self._company_aliases = {
-            k.lower(): v for k, v in aliases.get("companies", {}).items()
-        }
+        self._company_aliases = {k.lower(): v for k, v in aliases.get("companies", {}).items()}
 
         # Product aliases (hopper -> H100)
-        self._product_aliases = {
-            k.lower(): v for k, v in aliases.get("products", {}).items()
-        }
+        self._product_aliases = {k.lower(): v for k, v in aliases.get("products", {}).items()}
 
         logger.debug(
             "alias_index_built",
@@ -239,7 +235,7 @@ class GraphEngine:
         primary_entities = [e for e in entities if e.confidence >= 0.80]
         for entity in primary_entities:
             suppliers = self.get_tier1_suppliers(entity.ticker)
-            for supplier_ticker, supplier_info in suppliers.items():
+            for supplier_ticker, _supplier_info in suppliers.items():
                 if supplier_ticker not in seen_tickers:
                     # Lower confidence for derived relationships
                     entities.append(
@@ -262,9 +258,7 @@ class GraphEngine:
             return bool(re.search(pattern, text, re.IGNORECASE))
         return word in text
 
-    def _fuzzy_search(
-        self, text: str, threshold: float = 0.85
-    ) -> list[dict[str, Any]]:
+    def _fuzzy_search(self, text: str, threshold: float = 0.85) -> list[dict[str, Any]]:
         """
         Perform fuzzy matching on text against known products and companies.
 
@@ -293,21 +287,25 @@ class GraphEngine:
                 if ratio >= threshold:
                     ticker = product_info.get("ticker")
                     if ticker:
-                        results.append({
-                            "ticker": ticker,
-                            "confidence": ratio * 0.9,  # Discount fuzzy matches
-                            "matched_term": product_name,
-                        })
+                        results.append(
+                            {
+                                "ticker": ticker,
+                                "confidence": ratio * 0.9,  # Discount fuzzy matches
+                                "matched_term": product_name,
+                            }
+                        )
 
             # Check against company aliases
             for alias, ticker in self._company_aliases.items():
                 ratio = fuzz.ratio(word, alias) / 100.0
                 if ratio >= threshold:
-                    results.append({
-                        "ticker": ticker,
-                        "confidence": ratio * 0.9,
-                        "matched_term": alias,
-                    })
+                    results.append(
+                        {
+                            "ticker": ticker,
+                            "confidence": ratio * 0.9,
+                            "matched_term": alias,
+                        }
+                    )
 
         # Deduplicate by ticker, keeping highest confidence
         ticker_best: dict[str, dict] = {}
@@ -443,11 +441,13 @@ class GraphEngine:
             for pattern in patterns:
                 pattern_trigger = pattern.get("trigger", "").lower()
                 if any(word in trigger_lower for word in pattern_trigger.split()):
-                    matches.append({
-                        "type": signal_type,
-                        "description": signal_data.get("description", ""),
-                        **pattern,
-                    })
+                    matches.append(
+                        {
+                            "type": signal_type,
+                            "description": signal_data.get("description", ""),
+                            **pattern,
+                        }
+                    )
 
         return matches
 

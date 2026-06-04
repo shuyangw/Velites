@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from modules.mapper.graph_engine import GraphEngine
 from modules.mapper.exceptions import GraphTraversalError
+from modules.mapper.graph_engine import GraphEngine
 from modules.mapper.models import EntityRole
 
 

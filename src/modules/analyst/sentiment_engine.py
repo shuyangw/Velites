@@ -6,7 +6,7 @@ Acts as a veto mechanism when sentiment is deeply negative.
 """
 
 import math
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from config import settings
 from logging_config import get_logger
@@ -47,8 +47,7 @@ class SentimentEngine:
             from transformers import AutoModelForSequenceClassification, AutoTokenizer
         except ImportError:
             raise SentimentError(
-                "transformers and torch packages not installed. "
-                "Run: pip install transformers torch"
+                "transformers and torch packages not installed. Run: pip install transformers torch"
             )
 
         try:
@@ -57,6 +56,7 @@ class SentimentEngine:
 
             # Auto-detect device: GPU if available, else CPU
             import torch
+
             self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             self._model.to(self._device)
             self._model.eval()
@@ -65,9 +65,7 @@ class SentimentEngine:
         except Exception as e:
             raise SentimentError(f"Failed to load sentiment model: {e}")
 
-    async def analyze_sentiment(
-        self, news_items: list[NewsObject], ticker: str
-    ) -> SentimentScore:
+    async def analyze_sentiment(self, news_items: list[NewsObject], ticker: str) -> SentimentScore:
         """
         Analyze sentiment of news items for a ticker.
 
@@ -101,7 +99,7 @@ class SentimentEngine:
         self.load_model()
 
         # Current time for recency calculation
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Calculate weighted sentiment
         total_weight = 0.0
@@ -113,7 +111,7 @@ class SentimentEngine:
             # Calculate recency weight: exp(-decay * hours_old)
             if news.timestamp.tzinfo is None:
                 # Assume UTC if no timezone
-                news_time = news.timestamp.replace(tzinfo=timezone.utc)
+                news_time = news.timestamp.replace(tzinfo=UTC)
             else:
                 news_time = news.timestamp
 
@@ -124,12 +122,14 @@ class SentimentEngine:
             # Analyze headline sentiment
             sentiment = self._analyze_single_headline(news.headline)
 
-            headline_scores.append({
-                "headline": news.headline[:80],
-                "sentiment": round(sentiment, 3),
-                "weight": round(weight, 3),
-                "hours_old": round(hours_old, 1),
-            })
+            headline_scores.append(
+                {
+                    "headline": news.headline[:80],
+                    "sentiment": round(sentiment, 3),
+                    "weight": round(weight, 3),
+                    "hours_old": round(hours_old, 1),
+                }
+            )
 
             weighted_sum += sentiment * weight
             total_weight += weight
@@ -214,7 +214,9 @@ class SentimentEngine:
 
         return p_positive - p_negative
 
-    def _calculate_hype_volume(self, news_count: int, baseline: float = 5.0, std: float = 2.0) -> float:
+    def _calculate_hype_volume(
+        self, news_count: int, baseline: float = 5.0, std: float = 2.0
+    ) -> float:
         """
         Calculate news volume Z-score.
 
