@@ -75,7 +75,7 @@ class TestNewsFiltering:
                 summary="NVIDIA corporation reported strong revenue growth driven by AI demand...",
                 source="Test Feed",
                 url="https://example.com/1",
-                timestamp=datetime.utcnow() - timedelta(hours=2),
+                timestamp=datetime.now(UTC) - timedelta(hours=2),
                 tickers=[],
                 keywords=[],
             ),
@@ -85,7 +85,7 @@ class TestNewsFiltering:
                 summary="Technology stocks moved higher following Federal Reserve announcement...",
                 source="Test Feed",
                 url="https://example.com/2",
-                timestamp=datetime.utcnow() - timedelta(hours=12),
+                timestamp=datetime.now(UTC) - timedelta(hours=12),
                 tickers=[],
                 keywords=[],
             ),
@@ -95,7 +95,7 @@ class TestNewsFiltering:
                 summary="Taiwan Semiconductor plans to expand manufacturing capacity to meet demand...",
                 source="Test Feed",
                 url="https://example.com/3",
-                timestamp=datetime.utcnow() - timedelta(hours=6),
+                timestamp=datetime.now(UTC) - timedelta(hours=6),
                 tickers=[],
                 keywords=[],
             ),
@@ -105,7 +105,7 @@ class TestNewsFiltering:
                 summary="The weather was nice yesterday...",
                 source="Test Feed",
                 url="https://example.com/4",
-                timestamp=datetime.utcnow() - timedelta(days=5),
+                timestamp=datetime.now(UTC) - timedelta(days=5),
                 tickers=[],
                 keywords=[],
             ),
@@ -146,7 +146,7 @@ class TestNewsFiltering:
 
     def test_cutoff_date_filtering(self, sample_news_items: list[NewsObject]) -> None:
         """Test filtering by cutoff date."""
-        cutoff = datetime.utcnow() - timedelta(hours=24)
+        cutoff = datetime.now(UTC) - timedelta(hours=24)
 
         filtered = [n for n in sample_news_items if n.timestamp >= cutoff]
 
@@ -167,7 +167,7 @@ class TestNewsObjectCreation:
             summary="Test Summary",
             source="Test Source",
             url="https://example.com",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             tickers=["NVDA", "AMD"],
             keywords=["shortage", "demand"],
         )
@@ -185,7 +185,7 @@ class TestNewsObjectCreation:
             summary="Test",
             source="Test",
             url="https://example.com",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             tickers=[],
             keywords=[],
         )

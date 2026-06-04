@@ -301,7 +301,7 @@ class NewsFetcher(BaseNewsFetcher):
                     elif hasattr(entry, "updated_parsed") and entry.updated_parsed:
                         timestamp = datetime(*entry.updated_parsed[:6])
                     else:
-                        timestamp = datetime.utcnow()
+                        timestamp = datetime.now(UTC)
 
                     # Get summary/description
                     summary = ""

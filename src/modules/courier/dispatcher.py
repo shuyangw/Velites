@@ -7,7 +7,7 @@ and handles delivery via webhook or file output.
 
 import asyncio
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -61,7 +61,7 @@ class Dispatcher:
         return {
             "source": self.SOURCE_ID,
             "signal_id": signal.signal_id,
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(UTC).isoformat(),
             "type": signal_type,
             "ticker": signal.ticker,
             "venue": signal.venue,
@@ -71,7 +71,7 @@ class Dispatcher:
             "confidence": signal.confidence,
             "reasoning": signal.reasoning,
             "risk_flags": [flag.value for flag in signal.risk_flags],
-            "valid_until": signal.valid_until.isoformat() + "Z",
+            "valid_until": signal.valid_until.isoformat(),
         }
 
     async def dispatch(self, signal: AlphaSignal) -> bool:

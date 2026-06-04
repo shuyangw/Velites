@@ -83,12 +83,12 @@ class TestFormatPayload:
         assert payload["risk_flags"] == ["SMALL_CAP"]
 
     def test_format_payload_timestamp_iso_format(self, sample_signal: AlphaSignal) -> None:
-        """Test that timestamps are in ISO format with Z suffix."""
+        """Test that timestamps are in ISO format with UTC offset."""
         dispatcher = Dispatcher()
         payload = dispatcher.format_payload(sample_signal)
 
-        assert payload["timestamp"].endswith("Z")
-        assert payload["valid_until"].endswith("Z")
+        assert "+00:00" in payload["timestamp"]
+        assert "+00:00" in payload["valid_until"]
 
 
 class TestDispatchFile:

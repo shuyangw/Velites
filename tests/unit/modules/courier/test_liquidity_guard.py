@@ -60,7 +60,7 @@ class TestLiquidityGuard:
         illiquid_state.spread_pct = 5.0
 
         # Create a BUY signal
-        from datetime import datetime, timedelta
+        from datetime import UTC, datetime, timedelta
 
         signal = AlphaSignal(
             signal_id="test_001",
@@ -68,7 +68,7 @@ class TestLiquidityGuard:
             ticker="TEST",
             confidence=0.9,
             reasoning="Test signal",
-            valid_until=datetime.utcnow() + timedelta(hours=24),
+            valid_until=datetime.now(UTC) + timedelta(hours=24),
         )
 
         result = guard.validate_signal(signal, illiquid_state)
