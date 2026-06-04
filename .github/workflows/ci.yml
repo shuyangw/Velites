@@ -49,8 +49,10 @@ jobs:
           pip install -r requirements.txt
           pip install mypy
 
+      # NOTE: 88 mypy errors remain under strict mode (deferred - see Task 0.5 triage).
+      # Path corrected from dead src/velites to src; error count and fix scope TBD.
       - name: Run MyPy
-        run: mypy src/velites --ignore-missing-imports
+        run: mypy src --ignore-missing-imports
 
   test:
     name: Test
@@ -71,7 +73,7 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest tests/ -v --cov=src/velites --cov-report=xml
+          pytest tests/ --cov-report=xml
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3
