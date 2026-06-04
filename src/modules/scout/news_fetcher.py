@@ -18,9 +18,6 @@ from modules.scout.models import NewsObject
 
 logger = get_logger(__name__)
 
-# Tiingo API configuration
-TIINGO_NEWS_URL = "https://api.tiingo.com/iex"
-
 
 class BaseNewsFetcher(ABC):
     """Abstract base class for news fetching."""
